@@ -13,8 +13,10 @@
  */
 package net.rptools.parser;
 
+import java.util.Collections;
 import java.util.Map;
 
+import java.util.Set;
 import net.rptools.CaseInsensitiveHashMap;
 
 /**
@@ -47,4 +49,10 @@ public class MapVariableResolver implements VariableResolver {
 	public Object getVariable(String variableName, VariableModifiers vType) throws ParserException {
 		return variables.get(variableName);
 	}
+
+	@Override
+	public Set<String> getVariables() {
+		return Collections.unmodifiableSet(variables.keySet());
+	}
+
 }

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Set;
 import net.rptools.CaseInsensitiveHashMap;
 import net.rptools.parser.function.Function;
 import net.rptools.parser.function.impl.AbsoluteValue;
@@ -229,6 +230,11 @@ public class Parser implements VariableResolver {
 
 	public Object getVariable(String variableName, VariableModifiers vType) throws ParserException {
 		return variableResolver.getVariable(variableName, vType);
+	}
+
+	@Override
+	public Set<String> getVariables() {
+		return variableResolver.getVariables();
 	}
 
 	public EvaluationTreeParser getEvaluationTreeParser() throws ParserException {

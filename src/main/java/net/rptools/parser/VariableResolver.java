@@ -13,6 +13,8 @@
  */
 package net.rptools.parser;
 
+import java.util.Set;
+
 /**
  * Interface that does variable resolution for the parser.  If the parser is constructed
  * with an instance of this interface, then all variable resolution will go through
@@ -30,4 +32,6 @@ public interface VariableResolver {
 	public void setVariable(String name, VariableModifiers vType, Object value) throws ParserException;
 
 	public Object getVariable(String variableName, VariableModifiers vType) throws ParserException;
+
+	public Set<String> getVariables();
 }
