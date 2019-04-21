@@ -1,90 +1,91 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * This software Copyright by the RPTools.net development team, and
+ * licensed under the Affero GPL Version 3 or, at your option, any later
+ * version.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * RPTools Source Code is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * You should have received a copy of the GNU Affero General Public
+ * License * along with this source Code.  If not, please visit
+ * <http://www.gnu.org/licenses/> and specifically the Affero license
+ * text at <http://www.gnu.org/licenses/agpl.html>.
  */
 package net.rptools.parser;
 
+import antlr.collections.AST;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
-import antlr.collections.AST;
 
 public class Expression {
-	private static final InlineTreeFormatter inlineFormatter = new InlineTreeFormatter();
+  private static final InlineTreeFormatter inlineFormatter = new InlineTreeFormatter();
 
-	private final Parser parser;
-	private final ExpressionParser expressionParser;
-	private final AST tree;
+  private final Parser parser;
+  private final ExpressionParser expressionParser;
+  private final AST tree;
 
-	private transient Expression deterministicExpression;
+  private transient Expression deterministicExpression;
 
-	Expression(Parser parser, ExpressionParser expressionParser, AST tree, boolean deterministic) {
-		this.parser = parser;
-		this.expressionParser = expressionParser;
-		this.tree = tree;
-		if (deterministic) {
-			deterministicExpression = this;
-		}
-	}
+  Expression(Parser parser, ExpressionParser expressionParser, AST tree, boolean deterministic) {
+    this.parser = parser;
+    this.expressionParser = expressionParser;
+    this.tree = tree;
+    if (deterministic) {
+      deterministicExpression = this;
+    }
+  }
 
-	Expression(Parser parser, ExpressionParser expressionParser, AST tree) {
-		this(parser, expressionParser, tree, false);
-	}
+  Expression(Parser parser, ExpressionParser expressionParser, AST tree) {
+    this(parser, expressionParser, tree, false);
+  }
 
-	public Parser getParser() {
-		return parser;
-	}
+  public Parser getParser() {
+    return parser;
+  }
 
-	public ExpressionParser getExpressionParser() {
-		return expressionParser;
-	}
+  public ExpressionParser getExpressionParser() {
+    return expressionParser;
+  }
 
-	public AST getTree() {
-		return tree;
-	}
+  public AST getTree() {
+    return tree;
+  }
 
-	public Object evaluate() throws ParserException {
-		return parser.getEvaluationTreeParser().evaluate(tree);
-	}
+  public Object evaluate() throws ParserException {
+    return parser.getEvaluationTreeParser().evaluate(tree);
+  }
 
-	private void createDeterministicExpression() throws ParserException {
-		DeterministicTreeParser tp = new DeterministicTreeParser(parser, expressionParser);
+  private void createDeterministicExpression() throws ParserException {
+    DeterministicTreeParser tp = new DeterministicTreeParser(parser, expressionParser);
 
-		AST dupTree = expressionParser.getASTFactory().dupTree(tree);
-		AST newTree = tp.evaluate(dupTree);
+    AST dupTree = expressionParser.getASTFactory().dupTree(tree);
+    AST newTree = tp.evaluate(dupTree);
 
-		if (tree.equalsTree(newTree)) {
-			deterministicExpression = this;
-		} else {
-			deterministicExpression = new Expression(parser, expressionParser, newTree, true);
-		}
-	}
+    if (tree.equalsTree(newTree)) {
+      deterministicExpression = this;
+    } else {
+      deterministicExpression = new Expression(parser, expressionParser, newTree, true);
+    }
+  }
 
-	public boolean isDeterministic() throws ParserException {
-		if (deterministicExpression == null) {
-			createDeterministicExpression();
-		}
+  public boolean isDeterministic() throws ParserException {
+    if (deterministicExpression == null) {
+      createDeterministicExpression();
+    }
 
-		return deterministicExpression == this;
-	}
+    return deterministicExpression == this;
+  }
 
-	public Expression getDeterministicExpression() throws ParserException {
-		if (deterministicExpression == null) {
-			createDeterministicExpression();
-		}
+  public Expression getDeterministicExpression() throws ParserException {
+    if (deterministicExpression == null) {
+      createDeterministicExpression();
+    }
 
-		return deterministicExpression;
-	}
+    return deterministicExpression;
+  }
 
-	public String format() throws EvaluationException, ParameterException {
-		return inlineFormatter.format(tree);
-	}
+  public String format() throws EvaluationException, ParameterException {
+    return inlineFormatter.format(tree);
+  }
 }

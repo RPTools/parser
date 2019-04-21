@@ -1,58 +1,58 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
+ * This software Copyright by the RPTools.net development team, and
+ * licensed under the Affero GPL Version 3 or, at your option, any later
+ * version.
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * RPTools Source Code is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * You should have received a copy of the GNU Affero General Public
+ * License * along with this source Code.  If not, please visit
+ * <http://www.gnu.org/licenses/> and specifically the Affero license
+ * text at <http://www.gnu.org/licenses/agpl.html>.
  */
 package net.rptools.parser;
 
 import java.util.Collections;
 import java.util.Map;
-
 import java.util.Set;
 import net.rptools.CaseInsensitiveHashMap;
 
 /**
- * Default implementation of a {@link VariableResolver} that uses a Map<String, Object> as the 
+ * Default implementation of a {@link VariableResolver} that uses a Map<String, Object> as the
  * backing object.
  */
 public class MapVariableResolver implements VariableResolver {
-	private final Map<String, Object> variables = new CaseInsensitiveHashMap<Object>();
+  private final Map<String, Object> variables = new CaseInsensitiveHashMap<Object>();
 
-	public boolean containsVariable(String name) throws ParserException {
-		return containsVariable(name, VariableModifiers.None);
-	}
+  public boolean containsVariable(String name) throws ParserException {
+    return containsVariable(name, VariableModifiers.None);
+  }
 
-	public void setVariable(String name, Object value) throws ParserException {
-		setVariable(name, VariableModifiers.None, value);
-	}
+  public void setVariable(String name, Object value) throws ParserException {
+    setVariable(name, VariableModifiers.None, value);
+  }
 
-	public Object getVariable(String variableName) throws ParserException {
-		return getVariable(variableName, VariableModifiers.None);
-	}
+  public Object getVariable(String variableName) throws ParserException {
+    return getVariable(variableName, VariableModifiers.None);
+  }
 
-	public boolean containsVariable(String name, VariableModifiers vType) throws ParserException {
-		return variables.containsKey(name);
-	}
+  public boolean containsVariable(String name, VariableModifiers vType) throws ParserException {
+    return variables.containsKey(name);
+  }
 
-	public void setVariable(String name, VariableModifiers vType, Object value) throws ParserException {
-		variables.put(name, value);
-	}
+  public void setVariable(String name, VariableModifiers vType, Object value)
+      throws ParserException {
+    variables.put(name, value);
+  }
 
-	public Object getVariable(String variableName, VariableModifiers vType) throws ParserException {
-		return variables.get(variableName);
-	}
+  public Object getVariable(String variableName, VariableModifiers vType) throws ParserException {
+    return variables.get(variableName);
+  }
 
-	@Override
-	public Set<String> getVariables() {
-		return Collections.unmodifiableSet(variables.keySet());
-	}
-
+  @Override
+  public Set<String> getVariables() {
+    return Collections.unmodifiableSet(variables.keySet());
+  }
 }
