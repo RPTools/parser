@@ -26,7 +26,8 @@ public interface Function {
   public Object evaluate(Parser parser, String functionName, List<Object> parameters)
       throws ParserException;
 
-  public void checkParameters(List<Object> parameters) throws ParameterException;
+  public void checkParameters(String functionName, List<Object> parameters)
+      throws ParameterException;
 
   public int getMinimumParameterCount();
 

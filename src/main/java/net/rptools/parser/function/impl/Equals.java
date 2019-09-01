@@ -54,8 +54,9 @@ public class Equals extends AbstractFunction {
   }
 
   @Override
-  public void checkParameters(List<Object> parameters) throws ParameterException {
-    super.checkParameters(parameters);
+  public void checkParameters(String functionName, List<Object> parameters)
+      throws ParameterException {
+    super.checkParameters(functionName, parameters);
 
     for (Object param : parameters) {
       if (!(param instanceof BigDecimal || param instanceof String))
