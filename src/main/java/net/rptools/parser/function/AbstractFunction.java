@@ -24,6 +24,14 @@ public abstract class AbstractFunction implements Function {
   private final int maxParameters;
   private final boolean deterministic;
 
+  // Could use i18n instead, but would require additional dependency
+  private static final String WRONG_NUM_PARAM =
+      "Function '%s' requires exactly %d parameters; %d were provided.";
+  private static final String NOT_ENOUGH_PARAM =
+      "Function '%s' requires at least %d parameters; %d were provided.";
+  private static final String TOO_MANY_PARAM =
+      "Function '%s' requires no more than %d parameters; %d were provided.";
+
   public AbstractFunction(String... aliases) {
     this(0, UNLIMITED_PARAMETERS, aliases);
   }
@@ -47,7 +55,7 @@ public abstract class AbstractFunction implements Function {
 
   public final Object evaluate(Parser parser, String functionName, List<Object> parameters)
       throws ParserException {
-    checkParameters(parameters);
+    checkParameters(functionName, parameters);
 
     return childEvaluate(parser, functionName, parameters);
   }
@@ -68,30 +76,28 @@ public abstract class AbstractFunction implements Function {
    * Default implementation only checks count. Override this to implement more complex parameter
    * checking.
    *
-   * @param parameters
+   * @param functionName the name of the function
+   * @param parameters the list of parameters
    */
-  public void checkParameters(List<Object> parameters) throws ParameterException {
+  public void checkParameters(String functionName, List<Object> parameters)
+      throws ParameterException {
     int pCount = parameters == null ? 0 : parameters.size();
 
-    if (pCount < minParameters
-        || (maxParameters != UNLIMITED_PARAMETERS && parameters.size() > maxParameters))
-      throw new ParameterException(
-          String.format(
-              "Invalid number of parameters %d, expected %s",
-              pCount, formatExpectedParameterString()));
+    if (minParameters == maxParameters) {
+      if (pCount != maxParameters)
+        throw new ParameterException(
+            String.format(WRONG_NUM_PARAM, functionName, maxParameters, pCount));
+    } else {
+      if (pCount < minParameters)
+        throw new ParameterException(
+            String.format(NOT_ENOUGH_PARAM, functionName, minParameters, pCount));
+      if (maxParameters != UNLIMITED_PARAMETERS && pCount > maxParameters)
+        throw new ParameterException(
+            String.format(TOO_MANY_PARAM, functionName, maxParameters, pCount));
+    }
   }
 
   public void checkParameterTypes(List<Object> parameters, List<Class> allowedTypes) {}
-
-  private String formatExpectedParameterString() {
-    if (minParameters == maxParameters)
-      return String.format("exactly %d parameter(s)", maxParameters);
-
-    if (maxParameters == UNLIMITED_PARAMETERS)
-      return String.format("at least %d parameters", minParameters);
-
-    return String.format("between %d and %d parameters", minParameters, maxParameters);
-  }
 
   protected boolean containsString(List<Object> parameters) {
     for (Object param : parameters) {
