@@ -1,8 +1,7 @@
-import java.text.SimpleDateFormat
-
 buildscript {
     dependencies {
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.13.0"
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.26.1"
+        classpath "org.ajoberstar.grgit:grgit-gradle:4.0.1"
         classpath 'antlr:antlr:2.7.7'
     }
 
@@ -13,7 +12,7 @@ buildscript {
 
 // Access Git info from build script
 plugins {
-    id "org.ajoberstar.grgit" version "3.0.0"
+    id "org.ajoberstar.grgit" version "4.0.1"
     id 'antlr'
 }
 
@@ -23,9 +22,8 @@ apply plugin: 'com.diffplug.gradle.spotless'
 apply plugin: 'maven'
 
 
-
-sourceCompatibility = 10
-targetCompatibility = 10
+project.sourceCompatibility = 10
+project.targetCompatibility = 10
 
 
 // In this section you declare where to find the dependencies of your project
@@ -36,18 +34,17 @@ repositories {
 }
 
 
-
 dependencies {
-    compile 'rhino:js:1.6R5'
-    compile 'antlr:antlr:2.7.6'
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    implementation 'rhino:js:1.6R5'
+    implementation 'antlr:antlr:2.7.6'
+    testImplementation group: 'junit', name: 'junit', version: '4.11'
     antlr 'antlr:antlr:2.7.7'
 }
 
 // Custom properties
 ext {
     // Get tag and commit info from Git to use for version numbering
-    def repo = org.ajoberstar.grgit.Grgit.open(currentDir: file('.'))
+    def repo = grgit.open(currentDir: file('.'))
     def head = repo.head()
     def tags = repo.tag.list().find {
         it.commit == head
@@ -100,19 +97,19 @@ configurations {
 
 install {
     repositories.mavenInstaller {
-        pom.version = project.version;
-        pom.artifactId = 'parser';
-        pom.groupId = 'net.rptools.parser';
+        pom.version = project.version
+        pom.artifactId = 'parser'
+        pom.groupId = 'net.rptools.parser'
     }
 }
 
 
 uploadArchives {
     repositories.mavenDeployer {
-        pom.version = project.version;
-        pom.artifactId = 'parser';
-        pom.groupId = 'net.rptools.parser';
-        configuration = configurations.deployerJars;
+        pom.version = project.version
+        pom.artifactId = 'parser'
+        pom.groupId = 'net.rptools.parser'
+        configuration = configurations.deployerJars
         repository url: 'file://' + projectDir + '/../maven-repo'
     }
 }
