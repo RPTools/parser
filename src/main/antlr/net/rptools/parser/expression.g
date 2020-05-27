@@ -161,7 +161,7 @@ class ExpressionLexer extends Lexer;
 
 options {
     k=3;    // needed for newline junk
-    charVocabulary='\u0000'..'\u007F';  // allow ascii
+    charVocabulary='\u0000'..'\u00FF';  // allow ISO 8859-1
 }
 
 ASSIGN  :   '=' ;
