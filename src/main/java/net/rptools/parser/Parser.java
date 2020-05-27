@@ -18,6 +18,7 @@ import antlr.CommonAST;
 import antlr.RecognitionException;
 import antlr.TokenStreamException;
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -248,7 +249,8 @@ public class Parser implements VariableResolver {
     try {
       String s = applyTransforms(expression);
 
-      ExpressionLexer lexer = new ExpressionLexer(new ByteArrayInputStream(s.getBytes()));
+      ExpressionLexer lexer =
+          new ExpressionLexer(new ByteArrayInputStream(s.getBytes(StandardCharsets.ISO_8859_1)));
       ExpressionParser parser = new ExpressionParser(lexer);
 
       parser.expression();
