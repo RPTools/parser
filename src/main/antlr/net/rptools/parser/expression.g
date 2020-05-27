@@ -210,7 +210,7 @@ protected HEXDIGIT   : ('0'..'9'|'A'..'F'|'a'..'f');
 protected DID        : ('d' | 'D') ;
 protected INT        : ('0'..'9')+ ;
 protected DIGIT      : '0'..'9' ;
-protected LETTER     : ('A'..'Z'|'a'..'z') ;
+protected LETTER     : ('A'..'Z'|'a'..'z'|'\u00c0'..'\u00d6'|'\u00d8'..'\u00f6'|'\u00f8'..'\u00ff') ;
 
 
 
