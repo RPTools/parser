@@ -31,12 +31,11 @@ public class StrNotEquals extends AbstractFunction {
       throws EvaluationException, ParameterException {
     boolean value = true;
 
-    if (containsString(parameters)) {
+    if (!containsOnlyBigDecimals(parameters)) {
       for (int i = 0; i < parameters.size() - 1; i++) {
         String s1 = parameters.get(i).toString();
         String s2 = parameters.get(i + 1).toString();
-
-        value &= !s1.trim().equalsIgnoreCase(s2.trim());
+        value &= !s1.trim().equals(s2.trim());
       }
     } else {
       for (int i = 0; i < parameters.size() - 1; i++) {
@@ -48,19 +47,5 @@ public class StrNotEquals extends AbstractFunction {
     }
 
     return value ? BigDecimal.ONE : BigDecimal.ZERO;
-  }
-
-  @Override
-  public void checkParameters(String functionName, List<Object> parameters)
-      throws ParameterException {
-    super.checkParameters(functionName, parameters);
-
-    for (Object param : parameters) {
-      if (!(param instanceof BigDecimal || param instanceof String))
-        throw new ParameterException(
-            String.format(
-                "Illegal argument type %s, expecting %s or %s",
-                param.getClass().getName(), BigDecimal.class.getName(), String.class.getName()));
-    }
   }
 }
