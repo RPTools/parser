@@ -25,6 +25,31 @@ import net.rptools.parser.function.ParameterException;
 
 public class ParserTest extends TestCase {
 
+  public void testIncompatibleArgumentOperations() throws ParserException {
+
+    VariableResolver resolver = new MapVariableResolver();
+    Parser p = new Parser(resolver, true);
+
+    // string + object
+    resolver.setVariable("x", List.of("one", "two"));
+    evaluateStringExpression(p, "\"text\" + x", "text[one, two]");
+
+    // num + object
+    evaluateStringExpression(p, "1 + x", "1[one, two]");
+
+    // string equals (case ignore) object
+    evaluateExpression(p, "'[one, two]' == x", BigDecimal.ONE);
+
+    // string equals (case ignore) object
+    evaluateExpression(p, "'[one, three]' != x", BigDecimal.ONE);
+
+    // string equals (strict) object
+    evaluateExpression(p, "eqs('[one, two]',x)", BigDecimal.ONE);
+
+    // string not equals (strict) object
+    evaluateExpression(p, "neqs('[one, TWO]',x)", BigDecimal.ONE);
+  }
+
   public void testParseExpressionSimple() throws ParserException {
     Parser p = new Parser();
     Expression xp = p.parseExpression("1+2");

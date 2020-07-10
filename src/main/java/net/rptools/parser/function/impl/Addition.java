@@ -34,12 +34,11 @@ public class Addition extends AbstractFunction {
       return parameters.get(0);
     } else {
 
-      if (containsString(parameters)) {
+      if (!containsOnlyBigDecimals(parameters)) {
         StringBuilder sb = new StringBuilder();
         for (Object param : parameters) {
           sb.append(param.toString());
         }
-
         return sb.toString();
       } else {
         BigDecimal total = new BigDecimal(0);
@@ -52,20 +51,6 @@ public class Addition extends AbstractFunction {
 
         return total;
       }
-    }
-  }
-
-  @Override
-  public void checkParameters(String functionName, List<Object> parameters)
-      throws ParameterException {
-    super.checkParameters(functionName, parameters);
-
-    for (Object param : parameters) {
-      if (!(param instanceof BigDecimal || param instanceof String))
-        throw new ParameterException(
-            String.format(
-                "Illegal argument type %s, expecting %s or %s",
-                param.getClass().getName(), BigDecimal.class.getName(), String.class.getName()));
     }
   }
 }

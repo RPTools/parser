@@ -31,27 +31,21 @@ public class StrEquals extends AbstractFunction {
       throws EvaluationException, ParameterException {
     boolean value = true;
 
-    for (int i = 0; i < parameters.size() - 1; i++) {
-      String s1 = parameters.get(i).toString();
-      String s2 = parameters.get(i + 1).toString();
+    if (!containsOnlyBigDecimals(parameters)) {
+      for (int i = 0; i < parameters.size() - 1; i++) {
+        String s1 = parameters.get(i).toString();
+        String s2 = parameters.get(i + 1).toString();
+        value &= s1.trim().equals(s2.trim());
+      }
+    } else {
+      for (int i = 0; i < parameters.size() - 1; i++) {
+        BigDecimal d1 = (BigDecimal) parameters.get(i);
+        BigDecimal d2 = (BigDecimal) parameters.get(i + 1);
 
-      value &= s1.equals(s2);
+        value &= (d1.compareTo(d2) == 0);
+      }
     }
 
     return value ? BigDecimal.ONE : BigDecimal.ZERO;
-  }
-
-  @Override
-  public void checkParameters(String functionName, List<Object> parameters)
-      throws ParameterException {
-    super.checkParameters(functionName, parameters);
-
-    for (Object param : parameters) {
-      if (!(param instanceof String))
-        throw new ParameterException(
-            String.format(
-                "Illegal argument type %s, expecting %s",
-                param.getClass().getName(), String.class.getName()));
-    }
   }
 }

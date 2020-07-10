@@ -14,6 +14,7 @@
  */
 package net.rptools.parser.function;
 
+import java.math.BigDecimal;
 import java.util.List;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
@@ -97,14 +98,11 @@ public abstract class AbstractFunction implements Function {
     }
   }
 
-  public void checkParameterTypes(List<Object> parameters, List<Class> allowedTypes) {}
-
-  protected boolean containsString(List<Object> parameters) {
+  protected boolean containsOnlyBigDecimals(List<Object> parameters) {
     for (Object param : parameters) {
-      if (param instanceof String) return true;
+      if (!(param instanceof BigDecimal)) return false;
     }
-
-    return false;
+    return true;
   }
 
   public abstract Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
