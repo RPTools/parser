@@ -45,7 +45,7 @@ public class EvaluationTreeParser {
     this.parser = parser;
   }
 
-  public Object evaluate(AST node) throws ParserException {
+  public Object evaluate(AST node, VariableResolver resolver) throws ParserException {
     AST child;
 
     switch (node.getType()) {
@@ -82,9 +82,9 @@ public class EvaluationTreeParser {
 
           child = node.getFirstChild();
           if (child != null) {
-            params.add(evaluate(child));
+            params.add(evaluate(child, resolver));
             while ((child = child.getNextSibling()) != null) {
-              params.add(evaluate(child));
+              params.add(evaluate(child, resolver));
             }
           }
 
@@ -92,7 +92,7 @@ public class EvaluationTreeParser {
           if (function == null) {
             throw new EvaluationException(String.format("Undefined unary function: %s", name));
           }
-          return function.evaluate(parser, name, params);
+          return function.evaluate(parser, resolver, name, params);
         }
       case OPERATOR:
       case FUNCTION:
@@ -106,9 +106,9 @@ public class EvaluationTreeParser {
 
           child = node.getFirstChild();
           if (child != null) {
-            params.add(evaluate(child));
+            params.add(evaluate(child, resolver));
             while ((child = child.getNextSibling()) != null) {
-              params.add(evaluate(child));
+              params.add(evaluate(child, resolver));
             }
           }
 
@@ -116,15 +116,15 @@ public class EvaluationTreeParser {
           if (function == null) {
             throw new EvaluationException(String.format("Undefined function: %s", name));
           }
-          return function.evaluate(parser, name, params);
+          return function.evaluate(parser, resolver, name, params);
         }
       case VARIABLE:
         {
           String name = node.getText();
-          if (!parser.containsVariable(name, VariableModifiers.None)) {
+          if (!resolver.containsVariable(name, VariableModifiers.None)) {
             throw new EvaluationException(String.format("Undefined variable: %s", name));
           }
-          Object value = parser.getVariable(node.getText(), VariableModifiers.None);
+          Object value = resolver.getVariable(node.getText(), VariableModifiers.None);
           if (log.isLoggable(Level.FINEST))
             log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
           return value;
@@ -132,10 +132,10 @@ public class EvaluationTreeParser {
       case PROMPTVARIABLE:
         {
           String name = node.getText();
-          if (!parser.containsVariable(name, VariableModifiers.Prompt)) {
+          if (!resolver.containsVariable(name, VariableModifiers.Prompt)) {
             throw new EvaluationException(String.format("Undefined variable: %s", name));
           }
-          Object value = parser.getVariable(node.getText(), VariableModifiers.Prompt);
+          Object value = resolver.getVariable(node.getText(), VariableModifiers.Prompt);
           if (log.isLoggable(Level.FINEST))
             log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
           return value;

@@ -15,8 +15,6 @@
 package net.rptools.parser;
 
 import antlr.collections.AST;
-import net.rptools.parser.function.EvaluationException;
-import net.rptools.parser.function.ParameterException;
 
 public class Expression {
   private static final InlineTreeFormatter inlineFormatter = new InlineTreeFormatter();
@@ -25,19 +23,10 @@ public class Expression {
   private final ExpressionParser expressionParser;
   private final AST tree;
 
-  private transient Expression deterministicExpression;
-
-  Expression(Parser parser, ExpressionParser expressionParser, AST tree, boolean deterministic) {
+  Expression(Parser parser, ExpressionParser expressionParser, AST tree) {
     this.parser = parser;
     this.expressionParser = expressionParser;
     this.tree = tree;
-    if (deterministic) {
-      deterministicExpression = this;
-    }
-  }
-
-  Expression(Parser parser, ExpressionParser expressionParser, AST tree) {
-    this(parser, expressionParser, tree, false);
   }
 
   public Parser getParser() {
@@ -53,39 +42,27 @@ public class Expression {
   }
 
   public Object evaluate() throws ParserException {
-    return parser.getEvaluationTreeParser().evaluate(tree);
+    return parser.getEvaluationTreeParser().evaluate(tree, new MapVariableResolver());
   }
 
-  private void createDeterministicExpression() throws ParserException {
+  public Object evaluate(VariableResolver resolver) throws ParserException {
+    return parser.getEvaluationTreeParser().evaluate(tree, resolver);
+  }
+
+  public Expression getDeterministicExpression(VariableResolver resolver) throws ParserException {
     DeterministicTreeParser tp = new DeterministicTreeParser(parser, expressionParser);
 
     AST dupTree = expressionParser.getASTFactory().dupTree(tree);
-    AST newTree = tp.evaluate(dupTree);
+    AST newTree = tp.evaluate(dupTree, resolver);
 
     if (tree.equalsTree(newTree)) {
-      deterministicExpression = this;
+      return this;
     } else {
-      deterministicExpression = new Expression(parser, expressionParser, newTree, true);
+      return new Expression(parser, expressionParser, newTree);
     }
   }
 
-  public boolean isDeterministic() throws ParserException {
-    if (deterministicExpression == null) {
-      createDeterministicExpression();
-    }
-
-    return deterministicExpression == this;
-  }
-
-  public Expression getDeterministicExpression() throws ParserException {
-    if (deterministicExpression == null) {
-      createDeterministicExpression();
-    }
-
-    return deterministicExpression;
-  }
-
-  public String format() throws EvaluationException, ParameterException {
+  public String format() {
     return inlineFormatter.format(tree);
   }
 }

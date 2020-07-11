@@ -18,16 +18,19 @@ import java.util.List;
 import net.rptools.parser.Expression;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
+import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractFunction;
 import net.rptools.parser.function.ParameterException;
 
 public class Eval extends AbstractFunction {
+
   public Eval() {
     super(1, -1, "eval");
   }
 
   @Override
-  public Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException {
 
     Object ret = null;
@@ -42,7 +45,7 @@ public class Eval extends AbstractFunction {
         throw new ParameterException(String.format("Unable to evaluate expression %s", x));
       }
 
-      ret = expression.evaluate();
+      ret = expression.evaluate(resolver);
     }
 
     return ret;

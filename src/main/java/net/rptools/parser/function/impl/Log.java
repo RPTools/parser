@@ -17,6 +17,7 @@ package net.rptools.parser.function.impl;
 import java.math.BigDecimal;
 import java.util.List;
 import net.rptools.parser.Parser;
+import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractNumberFunction;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
@@ -28,7 +29,8 @@ public class Log extends AbstractNumberFunction {
   }
 
   @Override
-  public Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws EvaluationException, ParameterException {
     BigDecimal value = (BigDecimal) parameters.get(0);
 
