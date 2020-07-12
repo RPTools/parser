@@ -19,8 +19,6 @@ import static net.rptools.parser.ExpressionParserTokenTypes.*;
 import antlr.collections.AST;
 import java.util.HashMap;
 import java.util.Map;
-import net.rptools.parser.function.EvaluationException;
-import net.rptools.parser.function.ParameterException;
 
 public class InlineTreeFormatter {
 
@@ -47,7 +45,7 @@ public class InlineTreeFormatter {
     ORDER_OF_OPERATIONS.put("||", 13);
   }
 
-  public String format(AST node) throws EvaluationException, ParameterException {
+  public String format(AST node) {
     StringBuilder sb = new StringBuilder();
     format(node, sb);
 
@@ -60,7 +58,7 @@ public class InlineTreeFormatter {
     return result == null ? Integer.MAX_VALUE : result;
   }
 
-  private void format(AST node, StringBuilder sb) throws EvaluationException, ParameterException {
+  private void format(AST node, StringBuilder sb) {
     if (node == null) return;
 
     switch (node.getType()) {
@@ -119,7 +117,7 @@ public class InlineTreeFormatter {
           return;
         }
       default:
-        throw new EvaluationException(
+        throw new IllegalArgumentException(
             String.format("Unknown node type: name=%s, type=%d", node.getText(), node.getType()));
     }
   }

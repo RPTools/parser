@@ -26,14 +26,17 @@ public class MeanTest extends TestCase {
     Mean mean = new Mean();
 
     assertEquals(
-        new BigDecimal(10), mean.childEvaluate(null, null, createArgs(new BigDecimal(10))));
+        new BigDecimal(10), mean.childEvaluate(null, null, null, createArgs(new BigDecimal(10))));
     assertEquals(
         new BigDecimal(6),
-        mean.childEvaluate(null, null, createArgs(new BigDecimal(10), new BigDecimal(2))));
+        mean.childEvaluate(null, null, null, createArgs(new BigDecimal(10), new BigDecimal(2))));
     assertEquals(
         new BigDecimal(5),
         mean.childEvaluate(
-            null, null, createArgs(new BigDecimal(10), new BigDecimal(2), new BigDecimal(3))));
+            null,
+            null,
+            null,
+            createArgs(new BigDecimal(10), new BigDecimal(2), new BigDecimal(3))));
   }
 
   private List<Object> createArgs(Object... arguments) {

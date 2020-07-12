@@ -17,13 +17,15 @@ package net.rptools.parser.function;
 import java.util.List;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
+import net.rptools.parser.VariableResolver;
 
 public interface Function {
   public static final int UNLIMITED_PARAMETERS = -1;
 
   public String[] getAliases();
 
-  public Object evaluate(Parser parser, String functionName, List<Object> parameters)
+  public Object evaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException;
 
   public void checkParameters(String functionName, List<Object> parameters)

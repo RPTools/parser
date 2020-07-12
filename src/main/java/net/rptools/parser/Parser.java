@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import net.rptools.CaseInsensitiveHashMap;
 import net.rptools.parser.function.Function;
 import net.rptools.parser.function.impl.AbsoluteValue;
@@ -63,14 +62,12 @@ import net.rptools.parser.function.impl.StrNotEquals;
 import net.rptools.parser.function.impl.Subtraction;
 import net.rptools.parser.transform.Transformer;
 
-public class Parser implements VariableResolver {
-  private final Map<String, Function> functions = new CaseInsensitiveHashMap<Function>();
+public class Parser {
+  private final Map<String, Function> functions = new CaseInsensitiveHashMap<>();
 
-  private final List<Transformer> transforms = new ArrayList<Transformer>();
+  private final List<Transformer> transforms = new ArrayList<>();
 
   private final EvaluationTreeParser evaluationTreeParser;
-
-  private final VariableResolver variableResolver;
 
   ///////////////////////////////////////////////////////////////////////////
   // Constructor(s)
@@ -81,10 +78,6 @@ public class Parser implements VariableResolver {
   }
 
   public Parser(boolean addDefaultFunctions) {
-    this(null, addDefaultFunctions);
-  }
-
-  public Parser(VariableResolver variableResolver, boolean addDefaultFunctions) {
 
     if (addDefaultFunctions) {
       addStandardOperators();
@@ -95,9 +88,6 @@ public class Parser implements VariableResolver {
     }
 
     this.evaluationTreeParser = new EvaluationTreeParser(this);
-
-    if (variableResolver == null) this.variableResolver = new MapVariableResolver();
-    else this.variableResolver = variableResolver;
   }
 
   ///////////////////////////////////////////////////////////////////////////
@@ -197,44 +187,6 @@ public class Parser implements VariableResolver {
     }
 
     return s;
-  }
-
-  ///////////////////////////////////////////////////////////////////////////
-  // Variable
-  ///////////////////////////////////////////////////////////////////////////
-
-  public VariableResolver getVariableResolver() {
-    return variableResolver;
-  }
-
-  public boolean containsVariable(String name) throws ParserException {
-    return variableResolver.containsVariable(name, VariableModifiers.None);
-  }
-
-  public void setVariable(String name, Object value) throws ParserException {
-    variableResolver.setVariable(name, VariableModifiers.None, value);
-  }
-
-  public Object getVariable(String variableName) throws ParserException {
-    return variableResolver.getVariable(variableName, VariableModifiers.None);
-  }
-
-  public boolean containsVariable(String name, VariableModifiers vType) throws ParserException {
-    return variableResolver.containsVariable(name, vType);
-  }
-
-  public void setVariable(String name, VariableModifiers vType, Object value)
-      throws ParserException {
-    variableResolver.setVariable(name, vType, value);
-  }
-
-  public Object getVariable(String variableName, VariableModifiers vType) throws ParserException {
-    return variableResolver.getVariable(variableName, vType);
-  }
-
-  @Override
-  public Set<String> getVariables() {
-    return variableResolver.getVariables();
   }
 
   public EvaluationTreeParser getEvaluationTreeParser() throws ParserException {

@@ -28,10 +28,10 @@ public class PowerTest extends TestCase {
 
     assertEquals(
         new BigDecimal(100),
-        power.childEvaluate(null, null, createArgs(new BigDecimal(10), new BigDecimal(2))));
+        power.childEvaluate(null, null, null, createArgs(new BigDecimal(10), new BigDecimal(2))));
     assertEquals(
         new BigDecimal("0.1"),
-        power.childEvaluate(null, null, createArgs(new BigDecimal(10), new BigDecimal(-1))));
+        power.childEvaluate(null, null, null, createArgs(new BigDecimal(10), new BigDecimal(-1))));
   }
 
   private List<Object> createArgs(Object... arguments) {

@@ -26,17 +26,21 @@ public class MedianTest extends TestCase {
     Median median = new Median();
 
     assertEquals(
-        new BigDecimal(10), median.childEvaluate(null, null, createArgs(new BigDecimal(10))));
+        new BigDecimal(10), median.childEvaluate(null, null, null, createArgs(new BigDecimal(10))));
     assertEquals(
         new BigDecimal(6),
-        median.childEvaluate(null, null, createArgs(new BigDecimal(10), new BigDecimal(2))));
+        median.childEvaluate(null, null, null, createArgs(new BigDecimal(10), new BigDecimal(2))));
     assertEquals(
         new BigDecimal(3),
         median.childEvaluate(
-            null, null, createArgs(new BigDecimal(10), new BigDecimal(2), new BigDecimal(3))));
+            null,
+            null,
+            null,
+            createArgs(new BigDecimal(10), new BigDecimal(2), new BigDecimal(3))));
     assertEquals(
         new BigDecimal(5),
         median.childEvaluate(
+            null,
             null,
             null,
             createArgs(

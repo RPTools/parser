@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
+import net.rptools.parser.VariableResolver;
 
 public abstract class AbstractFunction implements Function {
   private final String[] aliases;
@@ -54,11 +55,12 @@ public abstract class AbstractFunction implements Function {
     return aliases;
   }
 
-  public final Object evaluate(Parser parser, String functionName, List<Object> parameters)
+  public final Object evaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException {
     checkParameters(functionName, parameters);
 
-    return childEvaluate(parser, functionName, parameters);
+    return childEvaluate(parser, resolver, functionName, parameters);
   }
 
   public final int getMinimumParameterCount() {
@@ -105,6 +107,7 @@ public abstract class AbstractFunction implements Function {
     return true;
   }
 
-  public abstract Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public abstract Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException;
 }

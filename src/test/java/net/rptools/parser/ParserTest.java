@@ -20,34 +20,48 @@ import java.math.BigInteger;
 import java.util.List;
 import junit.framework.TestCase;
 import net.rptools.parser.function.AbstractFunction;
-import net.rptools.parser.function.EvaluationException;
-import net.rptools.parser.function.ParameterException;
 
 public class ParserTest extends TestCase {
+
+  public void testReuseExpression() throws ParserException {
+
+    Expression exp = new Parser().parseExpression("x + 1");
+
+    // use exp once
+    VariableResolver vars = new MapVariableResolver();
+    vars.setVariable("x", BigDecimal.ONE);
+    assertEquals(new BigDecimal(2), exp.evaluate(vars));
+
+    // use exp another time - this is possible because parsing and evaluation
+    // is a separate step - the parser does not hang on to an initial variableresolver
+    VariableResolver vars2 = new MapVariableResolver();
+    vars2.setVariable("x", new BigDecimal(2));
+    assertEquals(new BigDecimal(3), exp.evaluate(vars2));
+  }
 
   public void testIncompatibleArgumentOperations() throws ParserException {
 
     VariableResolver resolver = new MapVariableResolver();
-    Parser p = new Parser(resolver, true);
+    Parser p = new Parser(true);
 
     // string + object
     resolver.setVariable("x", List.of("one", "two"));
-    evaluateStringExpression(p, "\"text\" + x", "text[one, two]");
+    evaluateStringExpression(p, resolver, "\"text\" + x", "text[one, two]");
 
     // num + object
-    evaluateStringExpression(p, "1 + x", "1[one, two]");
+    evaluateStringExpression(p, resolver, "1 + x", "1[one, two]");
 
     // string equals (case ignore) object
-    evaluateExpression(p, "'[one, two]' == x", BigDecimal.ONE);
+    evaluateExpression(p, resolver, "'[one, two]' == x", BigDecimal.ONE);
 
     // string equals (case ignore) object
-    evaluateExpression(p, "'[one, three]' != x", BigDecimal.ONE);
+    evaluateExpression(p, resolver, "'[one, three]' != x", BigDecimal.ONE);
 
     // string equals (strict) object
-    evaluateExpression(p, "eqs('[one, two]',x)", BigDecimal.ONE);
+    evaluateExpression(p, resolver, "eqs('[one, two]',x)", BigDecimal.ONE);
 
     // string not equals (strict) object
-    evaluateExpression(p, "neqs('[one, TWO]',x)", BigDecimal.ONE);
+    evaluateExpression(p, resolver, "neqs('[one, TWO]',x)", BigDecimal.ONE);
   }
 
   public void testParseExpressionSimple() throws ParserException {
@@ -66,14 +80,14 @@ public class ParserTest extends TestCase {
     assertEquals(" ( + ( + 200 2 ) ( roll 2 4 ) )", tree.toStringTree());
   }
 
-  public void testEvaluateSimple() throws ParserException, EvaluationException, ParameterException {
+  public void testEvaluateSimple() throws ParserException {
     Parser p = new Parser();
     Expression xp = p.parseExpression("1 + 2");
 
-    assertEquals(new BigDecimal(3), xp.evaluate());
+    assertEquals(new BigDecimal(3), xp.evaluate(new MapVariableResolver()));
   }
 
-  public void testEvaluate() throws ParserException, EvaluationException, ParameterException {
+  public void testEvaluate() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "1 + 2", new BigDecimal(3));
@@ -95,14 +109,17 @@ public class ParserTest extends TestCase {
     evaluateExpression(p, "2 * 2^3", new BigDecimal("16"));
   }
 
-  public void testEvaluateCustomFunction()
-      throws ParserException, EvaluationException, ParameterException {
+  public void testEvaluateCustomFunction() throws ParserException {
     Parser p = new Parser();
     p.addFunction(
         new AbstractFunction(1, 1, "increment") {
 
           @Override
-          public Object childEvaluate(Parser parser, String functionName, List<Object> parameters) {
+          public Object childEvaluate(
+              Parser parser,
+              VariableResolver resolver,
+              String functionName,
+              List<Object> parameters) {
             BigDecimal value = (BigDecimal) parameters.get(0);
             return value.add(BigDecimal.ONE);
           }
@@ -114,26 +131,26 @@ public class ParserTest extends TestCase {
     evaluateExpression(p, "2 + increment(2 * 2) * 5", new BigDecimal(27));
   }
 
-  public void testEvaluateVariables()
-      throws EvaluationException, ParameterException, ParserException {
+  public void testEvaluateVariables() throws ParserException {
     Parser p = new Parser();
-    p.setVariable("ii", new BigDecimal(100));
+    VariableResolver r = new MapVariableResolver();
+    r.setVariable("ii", new BigDecimal(100));
 
-    evaluateExpression(p, "ii", new BigDecimal(100));
-    evaluateExpression(p, "II", new BigDecimal(100));
-    evaluateExpression(p, "ii + 10", new BigDecimal(110));
-    evaluateExpression(p, "ii * 2", new BigDecimal(200));
+    evaluateExpression(p, r, "ii", new BigDecimal(100));
+    evaluateExpression(p, r, "II", new BigDecimal(100));
+    evaluateExpression(p, r, "ii + 10", new BigDecimal(110));
+    evaluateExpression(p, r, "ii * 2", new BigDecimal(200));
 
-    p.setVariable("C_mpl.x", new BigDecimal(42));
+    r.setVariable("C_mpl.x", new BigDecimal(42));
 
-    evaluateExpression(p, "C_mpl.x * 10", new BigDecimal(420));
+    evaluateExpression(p, r, "C_mpl.x * 10", new BigDecimal(420));
 
-    p.setVariable("foo", VariableModifiers.Prompt, new BigDecimal(10));
+    r.setVariable("foo", VariableModifiers.Prompt, new BigDecimal(10));
 
-    evaluateExpression(p, "?foo + 2", new BigDecimal(12));
+    evaluateExpression(p, r, "?foo + 2", new BigDecimal(12));
   }
 
-  public void testMath() throws EvaluationException, ParameterException, ParserException {
+  public void testMath() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "abs(10)", new BigDecimal(10));
@@ -164,8 +181,7 @@ public class ParserTest extends TestCase {
     evaluateExpression(p, "round(ln(9), 2)", new BigDecimal("2.20"));
   }
 
-  public void testStringParameters()
-      throws EvaluationException, ParameterException, ParserException {
+  public void testStringParameters() throws ParserException {
     Parser p = new Parser();
 
     evaluateStringExpression(p, "\"foo\" + \"bar\"", "foobar");
@@ -173,30 +189,31 @@ public class ParserTest extends TestCase {
     evaluateStringExpression(p, "1 - 2 + \"foo\"", "-1foo");
   }
 
-  public void testAssignment() throws EvaluationException, ParameterException, ParserException {
+  public void testAssignment() throws ParserException {
     Parser p = new Parser();
+    VariableResolver r = new MapVariableResolver();
 
-    evaluateExpression(p, "a = 5", new BigDecimal(5));
-    assertEquals(p.getVariable("a"), new BigDecimal(5));
+    evaluateExpression(p, r, "a = 5", new BigDecimal(5));
+    assertEquals(r.getVariable("a"), new BigDecimal(5));
 
-    evaluateExpression(p, "b = a * 2", new BigDecimal(10));
-    assertEquals(p.getVariable("b"), new BigDecimal(10));
+    evaluateExpression(p, r, "b = a * 2", new BigDecimal(10));
+    assertEquals(r.getVariable("b"), new BigDecimal(10));
 
-    evaluateExpression(p, "b = b * b", new BigDecimal(100));
-    assertEquals(p.getVariable("b"), new BigDecimal(100));
+    evaluateExpression(p, r, "b = b * b", new BigDecimal(100));
+    assertEquals(r.getVariable("b"), new BigDecimal(100));
 
-    evaluateExpression(p, "10 * set(\"c\", 10)", new BigDecimal(100));
-    assertEquals(p.getVariable("c"), new BigDecimal(10));
+    evaluateExpression(p, r, "10 * set(\"c\", 10)", new BigDecimal(100));
+    assertEquals(r.getVariable("c"), new BigDecimal(10));
   }
 
-  public void testEval() throws EvaluationException, ParameterException, ParserException {
+  public void testEval() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "eval('2*2')", new BigDecimal(4));
     evaluateExpression(p, "eval('a=2*2', 'b=3+1', 'a*b')", new BigDecimal(16));
   }
 
-  public void testBitwise() throws EvaluationException, ParameterException, ParserException {
+  public void testBitwise() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "band(1, 2)", BigDecimal.ZERO);
@@ -208,7 +225,7 @@ public class ParserTest extends TestCase {
     evaluateExpression(p, "band(0xFFF0, 0x00FF)", new BigDecimal(new BigInteger("00F0", 16)));
   }
 
-  public void testHexNumber() throws EvaluationException, ParameterException, ParserException {
+  public void testHexNumber() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "0xFF", new BigDecimal(255));
@@ -218,8 +235,7 @@ public class ParserTest extends TestCase {
     evaluateStringExpression(p, "hex(0xfac1)", "0xFAC1");
   }
 
-  public void testLogicalOperators()
-      throws EvaluationException, ParameterException, ParserException {
+  public void testLogicalOperators() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "true", BigDecimal.ONE);
@@ -256,8 +272,7 @@ public class ParserTest extends TestCase {
     evaluateExpression(p, "10 <= 15 && 12 >= 12", BigDecimal.ONE);
   }
 
-  public void testLogicalOperators_StringSupport()
-      throws EvaluationException, ParameterException, ParserException {
+  public void testLogicalOperators_StringSupport() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "'foo' == 'foo'", BigDecimal.ONE);
@@ -270,17 +285,21 @@ public class ParserTest extends TestCase {
     evaluateExpression(p, "eqs('foo', 'foo')", BigDecimal.ONE);
   }
 
-  public void testMultilineExpressions()
-      throws EvaluationException, ParameterException, ParserException {
+  public void testMultilineExpressions() throws ParserException {
     Parser p = new Parser();
 
     evaluateExpression(p, "10 + \n17 + \r\n3", new BigDecimal(30));
   }
 
   private void evaluateExpression(Parser p, String expression, BigDecimal answer)
-      throws EvaluationException, ParameterException, ParserException {
+      throws ParserException {
+    evaluateExpression(p, new MapVariableResolver(), expression, answer);
+  }
 
-    BigDecimal result = (BigDecimal) p.parseExpression(expression).evaluate();
+  private void evaluateExpression(
+      Parser p, VariableResolver r, String expression, BigDecimal answer) throws ParserException {
+
+    BigDecimal result = (BigDecimal) p.parseExpression(expression).evaluate(r);
     assertTrue(
         String.format(
             "%s evaluated incorrectly expected <%s> but was <%s>", expression, answer, result),
@@ -288,8 +307,14 @@ public class ParserTest extends TestCase {
   }
 
   private void evaluateStringExpression(Parser p, String expression, String answer)
-      throws EvaluationException, ParameterException, ParserException {
-    String result = (String) p.parseExpression(expression).evaluate();
+      throws ParserException {
+    evaluateStringExpression(p, new MapVariableResolver(), expression, answer);
+  }
+
+  private void evaluateStringExpression(
+      Parser p, VariableResolver resolver, String expression, String answer)
+      throws ParserException {
+    String result = (String) p.parseExpression(expression).evaluate(resolver);
 
     assertEquals(answer, result);
   }
