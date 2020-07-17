@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import net.rptools.parser.Parser;
+import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractFunction;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
@@ -30,7 +31,8 @@ public class Median extends AbstractFunction {
   }
 
   @Override
-  public Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws EvaluationException, ParameterException {
     if (parameters.size() == 1) {
       // unary usage

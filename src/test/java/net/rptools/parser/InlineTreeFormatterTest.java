@@ -51,13 +51,37 @@ public class InlineTreeFormatterTest extends TestCase {
     compare("eval('2*2')", "eval('2*2')");
   }
 
+  public void testLogicalOperators()
+      throws ParserException, EvaluationException, ParameterException {
+    /**
+     * OR : "||" ; AND : "&&" ; NOT : '!' ; EQUALS : "==" ; NOTEQUALS : "!=" ; GE : ">=" ; GT : ">"
+     * ; LT : "<" ; LE : "<=" ; TRUE : "true"; FALSE : "false";
+     */
+    compare("1||1", "1 || 1");
+    compare("1||1", "1 || 1");
+    compare("1&&1", "1 && 1");
+
+    compare("x<2||x>3", "x < 2 || x > 3");
+    compare("1&&1 || 0||1", "1 && 1 || 0 || 1");
+    compare("1||1 && 0||1", "1 || 1 && 0 || 1");
+    compare("(1||1)&&(0||1)", "(1 || 1) && (0 || 1)");
+
+    compare("!true", "!true");
+    compare("1==1", "1 == 1");
+    compare("a!=b", "a != b");
+    compare("1>2", "1 > 2");
+    compare("1+1>=2+2", "1 + 1 >= 2 + 2");
+    compare("1<2", "1 < 2");
+    compare("1+1<=2+2", "1 + 1 <= 2 + 2");
+    compare("true == (true && false) && false", "true == (true && false) && false");
+    compare("true", "true");
+    compare("false", "false");
+  }
+
   private void compare(String expression, String expected)
       throws ParserException, EvaluationException, ParameterException {
     Parser p = new Parser();
     Expression xp = p.parseExpression(expression);
-
-    InlineTreeFormatter tf = new InlineTreeFormatter();
-
-    assertEquals(expected, tf.format(xp.getTree()));
+    assertEquals(expected, xp.format());
   }
 }

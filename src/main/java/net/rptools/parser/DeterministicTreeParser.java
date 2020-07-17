@@ -44,7 +44,7 @@ public class DeterministicTreeParser {
     this.xParser = xParser;
   }
 
-  public AST evaluate(AST node) throws ParserException {
+  public AST evaluate(AST node, VariableResolver resolver) throws ParserException {
     if (node == null) return null;
 
     switch (node.getType()) {
@@ -54,37 +54,37 @@ public class DeterministicTreeParser {
       case ASSIGNEE:
       case TRUE:
       case FALSE:
-        node.setNextSibling(evaluate(node.getNextSibling()));
+        node.setNextSibling(evaluate(node.getNextSibling(), resolver));
         return node;
       case VARIABLE:
         {
           String name = node.getText();
-          if (!parser.containsVariable(name, VariableModifiers.None)) {
+          if (!resolver.containsVariable(name, VariableModifiers.None)) {
             throw new EvaluationException(String.format("Undefined variable: %s", name));
           }
-          Object value = parser.getVariable(node.getText(), VariableModifiers.None);
+          Object value = resolver.getVariable(node.getText(), VariableModifiers.None);
 
           if (log.isLoggable(Level.FINEST))
             log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
 
           AST newNode = createNode(value);
-          newNode.setNextSibling(evaluate(node.getNextSibling()));
+          newNode.setNextSibling(evaluate(node.getNextSibling(), resolver));
 
           return newNode;
         }
       case PROMPTVARIABLE:
         {
           String name = node.getText();
-          if (!parser.containsVariable(name, VariableModifiers.None)) {
+          if (!resolver.containsVariable(name, VariableModifiers.None)) {
             throw new EvaluationException(String.format("Undefined variable: %s", name));
           }
-          Object value = parser.getVariable(node.getText(), VariableModifiers.None);
+          Object value = resolver.getVariable(node.getText(), VariableModifiers.None);
 
           if (log.isLoggable(Level.FINEST))
             log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
 
           AST newNode = createNode(value);
-          newNode.setNextSibling(evaluate(node.getNextSibling()));
+          newNode.setNextSibling(evaluate(node.getNextSibling(), resolver));
 
           return newNode;
         }
@@ -99,15 +99,15 @@ public class DeterministicTreeParser {
           }
 
           if (!function.isDeterministic()) {
-            Object value = parser.getEvaluationTreeParser().evaluate(node);
+            Object value = parser.getEvaluationTreeParser().evaluate(node, resolver);
 
             AST newNode = createNode(value);
-            newNode.setNextSibling(evaluate(node.getNextSibling()));
+            newNode.setNextSibling(evaluate(node.getNextSibling(), resolver));
 
             return newNode;
           } else {
-            node.setFirstChild(evaluate(node.getFirstChild()));
-            node.setNextSibling(evaluate(node.getNextSibling()));
+            node.setFirstChild(evaluate(node.getFirstChild(), resolver));
+            node.setNextSibling(evaluate(node.getNextSibling(), resolver));
             return node;
           }
         }

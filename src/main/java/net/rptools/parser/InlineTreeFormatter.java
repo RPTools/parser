@@ -14,20 +14,11 @@
  */
 package net.rptools.parser;
 
-import static net.rptools.parser.ExpressionParserTokenTypes.ASSIGNEE;
-import static net.rptools.parser.ExpressionParserTokenTypes.FUNCTION;
-import static net.rptools.parser.ExpressionParserTokenTypes.HEXNUMBER;
-import static net.rptools.parser.ExpressionParserTokenTypes.NUMBER;
-import static net.rptools.parser.ExpressionParserTokenTypes.OPERATOR;
-import static net.rptools.parser.ExpressionParserTokenTypes.STRING;
-import static net.rptools.parser.ExpressionParserTokenTypes.UNARY_OPERATOR;
-import static net.rptools.parser.ExpressionParserTokenTypes.VARIABLE;
+import static net.rptools.parser.ExpressionParserTokenTypes.*;
 
 import antlr.collections.AST;
 import java.util.HashMap;
 import java.util.Map;
-import net.rptools.parser.function.EvaluationException;
-import net.rptools.parser.function.ParameterException;
 
 public class InlineTreeFormatter {
 
@@ -35,22 +26,39 @@ public class InlineTreeFormatter {
 
   static {
     // P(1) E(2) MD(3) AS(4):
-    ORDER_OF_OPERATIONS.put("=", 0);
+    // provide order-of for all operators as per
+    // https://en.wikipedia.org/wiki/Order_of_operations#Programming_languages
+    // Note that parser historically places operator = first
+    ORDER_OF_OPERATIONS.put("=", 1);
     ORDER_OF_OPERATIONS.put("^", 2);
     ORDER_OF_OPERATIONS.put("*", 3);
     ORDER_OF_OPERATIONS.put("/", 3);
     ORDER_OF_OPERATIONS.put("+", 4);
     ORDER_OF_OPERATIONS.put("-", 4);
+    ORDER_OF_OPERATIONS.put("<", 6);
+    ORDER_OF_OPERATIONS.put("<=", 6);
+    ORDER_OF_OPERATIONS.put(">", 6);
+    ORDER_OF_OPERATIONS.put(">=", 6);
+    ORDER_OF_OPERATIONS.put("==", 7);
+    ORDER_OF_OPERATIONS.put("!=", 7);
+    ORDER_OF_OPERATIONS.put("&&", 11);
+    ORDER_OF_OPERATIONS.put("||", 13);
   }
 
-  public String format(AST node) throws EvaluationException, ParameterException {
+  public String format(AST node) {
     StringBuilder sb = new StringBuilder();
     format(node, sb);
 
     return sb.toString();
   }
 
-  private void format(AST node, StringBuilder sb) throws EvaluationException, ParameterException {
+  private int getOrderOfOperator(String op) {
+    Integer result = ORDER_OF_OPERATIONS.get(op);
+    // revert to a default high order of for any not mapped operator
+    return result == null ? Integer.MAX_VALUE : result;
+  }
+
+  private void format(AST node, StringBuilder sb) {
     if (node == null) return;
 
     switch (node.getType()) {
@@ -59,6 +67,8 @@ public class InlineTreeFormatter {
       case VARIABLE:
       case NUMBER:
       case HEXNUMBER:
+      case TRUE:
+      case FALSE:
         {
           sb.append(node.getText());
           return;
@@ -73,12 +83,12 @@ public class InlineTreeFormatter {
         }
       case OPERATOR:
         {
-          int currentLevel = ORDER_OF_OPERATIONS.get(node.getText());
+          int currentLevel = getOrderOfOperator(node.getText());
 
           AST child = node.getFirstChild();
           while (child != null) {
             if (child.getType() == OPERATOR) {
-              int childLevel = ORDER_OF_OPERATIONS.get(child.getText());
+              int childLevel = getOrderOfOperator(child.getText());
               if (currentLevel < childLevel) sb.append("(");
               format(child, sb);
               if (currentLevel < childLevel) sb.append(")");
@@ -107,7 +117,7 @@ public class InlineTreeFormatter {
           return;
         }
       default:
-        throw new EvaluationException(
+        throw new IllegalArgumentException(
             String.format("Unknown node type: name=%s, type=%d", node.getText(), node.getType()));
     }
   }

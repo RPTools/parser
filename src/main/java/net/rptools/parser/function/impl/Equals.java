@@ -17,6 +17,7 @@ package net.rptools.parser.function.impl;
 import java.math.BigDecimal;
 import java.util.List;
 import net.rptools.parser.Parser;
+import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractFunction;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
@@ -27,11 +28,12 @@ public class Equals extends AbstractFunction {
   }
 
   @Override
-  public Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws EvaluationException, ParameterException {
     boolean value = true;
 
-    if (containsString(parameters)) {
+    if (!containsOnlyBigDecimals(parameters)) {
       for (int i = 0; i < parameters.size() - 1; i++) {
         String s1 = parameters.get(i).toString();
         String s2 = parameters.get(i + 1).toString();
@@ -51,19 +53,5 @@ public class Equals extends AbstractFunction {
     }
 
     return value ? BigDecimal.ONE : BigDecimal.ZERO;
-  }
-
-  @Override
-  public void checkParameters(String functionName, List<Object> parameters)
-      throws ParameterException {
-    super.checkParameters(functionName, parameters);
-
-    for (Object param : parameters) {
-      if (!(param instanceof BigDecimal || param instanceof String))
-        throw new ParameterException(
-            String.format(
-                "Illegal argument type %s, expecting %s or %s",
-                param.getClass().getName(), BigDecimal.class.getName(), String.class.getName()));
-    }
   }
 }

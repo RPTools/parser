@@ -27,7 +27,7 @@ public class DeterministicTreeParserTest extends TestCase {
       throws ParserException, EvaluationException, ParameterException {
     Parser p = new Parser();
     Expression xp = p.parseExpression("200+2+2*2");
-    Expression dxp = xp.getDeterministicExpression();
+    Expression dxp = xp.getDeterministicExpression(new MapVariableResolver());
 
     assertSame(xp, dxp);
 
@@ -42,7 +42,7 @@ public class DeterministicTreeParserTest extends TestCase {
     p.addFunction(new NonDeterministicFunction());
 
     Expression xp = p.parseExpression("200+2+nondeterministic(2, 2)+sum(1+2,2,3)");
-    Expression dxp = xp.getDeterministicExpression();
+    Expression dxp = xp.getDeterministicExpression(new MapVariableResolver());
 
     assertNotSame(xp, dxp);
 
@@ -61,7 +61,7 @@ public class DeterministicTreeParserTest extends TestCase {
     assertEquals(
         " ( = a ( + ( + 200 2 ) ( nondeterministic 2 2 ) ) )", xp.getTree().toStringTree());
 
-    Expression dxp = xp.getDeterministicExpression();
+    Expression dxp = xp.getDeterministicExpression(new MapVariableResolver());
 
     assertNotSame(xp, dxp);
 
@@ -74,7 +74,7 @@ public class DeterministicTreeParserTest extends TestCase {
 
     Expression xp = p.parseExpression("100+nondeterministic(4, 1)*10");
 
-    Expression dxp = xp.getDeterministicExpression();
+    Expression dxp = xp.getDeterministicExpression(new MapVariableResolver());
 
     assertNotSame(xp, dxp);
 
@@ -84,10 +84,12 @@ public class DeterministicTreeParserTest extends TestCase {
 
   public void testEvaluate_VariableResolution() throws ParserException {
     Parser p = new Parser();
-    p.setVariable("simpleInt", new BigDecimal(10));
+    VariableResolver r = new MapVariableResolver();
+
+    r.setVariable("simpleInt", new BigDecimal(10));
 
     Expression xp = p.parseExpression("1+simpleInt");
-    Expression dxp = xp.getDeterministicExpression();
+    Expression dxp = xp.getDeterministicExpression(r);
 
     assertNotSame(xp, dxp);
 
@@ -105,7 +107,8 @@ public class DeterministicTreeParserTest extends TestCase {
     }
 
     @Override
-    public Object childEvaluate(Parser parser, String functionName, List<Object> parameters) {
+    public Object childEvaluate(
+        Parser parser, VariableResolver resolver, String functionName, List<Object> parameters) {
       return BigDecimal.ONE;
     }
   }

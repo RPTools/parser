@@ -14,9 +14,11 @@
  */
 package net.rptools.parser.function;
 
+import java.math.BigDecimal;
 import java.util.List;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
+import net.rptools.parser.VariableResolver;
 
 public abstract class AbstractFunction implements Function {
   private final String[] aliases;
@@ -53,11 +55,12 @@ public abstract class AbstractFunction implements Function {
     return aliases;
   }
 
-  public final Object evaluate(Parser parser, String functionName, List<Object> parameters)
+  public final Object evaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException {
     checkParameters(functionName, parameters);
 
-    return childEvaluate(parser, functionName, parameters);
+    return childEvaluate(parser, resolver, functionName, parameters);
   }
 
   public final int getMinimumParameterCount() {
@@ -97,16 +100,14 @@ public abstract class AbstractFunction implements Function {
     }
   }
 
-  public void checkParameterTypes(List<Object> parameters, List<Class> allowedTypes) {}
-
-  protected boolean containsString(List<Object> parameters) {
+  protected boolean containsOnlyBigDecimals(List<Object> parameters) {
     for (Object param : parameters) {
-      if (param instanceof String) return true;
+      if (!(param instanceof BigDecimal)) return false;
     }
-
-    return false;
+    return true;
   }
 
-  public abstract Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public abstract Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException;
 }

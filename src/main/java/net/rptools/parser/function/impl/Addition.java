@@ -17,6 +17,7 @@ package net.rptools.parser.function.impl;
 import java.math.BigDecimal;
 import java.util.List;
 import net.rptools.parser.Parser;
+import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractFunction;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
@@ -27,19 +28,19 @@ public class Addition extends AbstractFunction {
   }
 
   @Override
-  public Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws EvaluationException, ParameterException {
     if (parameters.size() == 1) {
       // unary usage
       return parameters.get(0);
     } else {
 
-      if (containsString(parameters)) {
+      if (!containsOnlyBigDecimals(parameters)) {
         StringBuilder sb = new StringBuilder();
         for (Object param : parameters) {
           sb.append(param.toString());
         }
-
         return sb.toString();
       } else {
         BigDecimal total = new BigDecimal(0);
@@ -52,20 +53,6 @@ public class Addition extends AbstractFunction {
 
         return total;
       }
-    }
-  }
-
-  @Override
-  public void checkParameters(String functionName, List<Object> parameters)
-      throws ParameterException {
-    super.checkParameters(functionName, parameters);
-
-    for (Object param : parameters) {
-      if (!(param instanceof BigDecimal || param instanceof String))
-        throw new ParameterException(
-            String.format(
-                "Illegal argument type %s, expecting %s or %s",
-                param.getClass().getName(), BigDecimal.class.getName(), String.class.getName()));
     }
   }
 }

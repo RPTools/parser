@@ -17,6 +17,7 @@ package net.rptools.parser.function.impl;
 import java.util.List;
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
+import net.rptools.parser.VariableResolver;
 import net.rptools.parser.function.AbstractFunction;
 
 public class Assignment extends AbstractFunction {
@@ -25,14 +26,15 @@ public class Assignment extends AbstractFunction {
   }
 
   @Override
-  public Object childEvaluate(Parser parser, String functionName, List<Object> parameters)
+  public Object childEvaluate(
+      Parser parser, VariableResolver resolver, String functionName, List<Object> parameters)
       throws ParserException {
 
     String name = (String) parameters.get(0);
 
     Object value = parameters.get(1);
 
-    parser.setVariable(name, value);
+    resolver.setVariable(name, value);
 
     return value;
   }
