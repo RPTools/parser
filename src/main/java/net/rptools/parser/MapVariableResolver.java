@@ -14,6 +14,7 @@
  */
 package net.rptools.parser;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -26,11 +27,23 @@ import net.rptools.CaseInsensitiveHashMap;
 public class MapVariableResolver implements VariableResolver {
   private final Map<String, Object> variables = new CaseInsensitiveHashMap<Object>();
 
+  private static final Map<String, Object> constants =
+      Map.of(
+          "true", BigDecimal.ONE,
+          "false", BigDecimal.ZERO);
+
+  public MapVariableResolver() {
+    variables.putAll(constants);
+  }
+
   public boolean containsVariable(String name) throws ParserException {
     return containsVariable(name, VariableModifiers.None);
   }
 
   public void setVariable(String name, Object value) throws ParserException {
+    if (constants.containsKey(name)) {
+      throw new ParserException(name + " can not be the target of assignment.");
+    }
     setVariable(name, VariableModifiers.None, value);
   }
 
