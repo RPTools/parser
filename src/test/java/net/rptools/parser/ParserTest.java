@@ -318,4 +318,24 @@ public class ParserTest extends TestCase {
 
     assertEquals(answer, result);
   }
+
+  public void testAssignToTrue() throws ParserException {
+    Parser p = new Parser();
+    try {
+      evaluateExpression(p, "true = 2", BigDecimal.valueOf(2));
+      fail("Was able to assign to 'true'");
+    } catch (ParserException ex) {
+      // Expected
+    }
+  }
+
+  public void testAssignToFalse() throws ParserException {
+    Parser p = new Parser();
+    try {
+      evaluateExpression(p, "false = 2", BigDecimal.valueOf(2));
+      fail("Was able to assign to 'fakse'");
+    } catch (ParserException ex) {
+      // Expected
+    }
+  }
 }

@@ -15,14 +15,12 @@
 package net.rptools.parser;
 
 import static net.rptools.parser.ExpressionParserTokenTypes.ASSIGNEE;
-import static net.rptools.parser.ExpressionParserTokenTypes.FALSE;
 import static net.rptools.parser.ExpressionParserTokenTypes.FUNCTION;
 import static net.rptools.parser.ExpressionParserTokenTypes.HEXNUMBER;
 import static net.rptools.parser.ExpressionParserTokenTypes.NUMBER;
 import static net.rptools.parser.ExpressionParserTokenTypes.OPERATOR;
 import static net.rptools.parser.ExpressionParserTokenTypes.PROMPTVARIABLE;
 import static net.rptools.parser.ExpressionParserTokenTypes.STRING;
-import static net.rptools.parser.ExpressionParserTokenTypes.TRUE;
 import static net.rptools.parser.ExpressionParserTokenTypes.UNARY_OPERATOR;
 import static net.rptools.parser.ExpressionParserTokenTypes.VARIABLE;
 
@@ -52,8 +50,6 @@ public class DeterministicTreeParser {
       case NUMBER:
       case HEXNUMBER:
       case ASSIGNEE:
-      case TRUE:
-      case FALSE:
         node.setNextSibling(evaluate(node.getNextSibling(), resolver));
         return node;
       case VARIABLE:

@@ -22,8 +22,8 @@ apply plugin: 'com.diffplug.gradle.spotless'
 apply plugin: 'maven'
 
 
-project.sourceCompatibility = 10
-project.targetCompatibility = 10
+project.sourceCompatibility = 14
+project.targetCompatibility = 14
 
 
 // In this section you declare where to find the dependencies of your project
