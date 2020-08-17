@@ -67,8 +67,6 @@ public class InlineTreeFormatter {
       case VARIABLE:
       case NUMBER:
       case HEXNUMBER:
-      case TRUE:
-      case FALSE:
         {
           sb.append(node.getText());
           return;

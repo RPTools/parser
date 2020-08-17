@@ -128,10 +128,6 @@ constantExpression:
                 |
                 HEXNUMBER
                 |
-                TRUE
-                |
-                FALSE
-                |
                 variable
                 |
                 t1:SINGLE_QUOTED_STRING {#t1.setType(STRING);}
@@ -177,8 +173,6 @@ GE		:   ">=" ;
 GT      :   ">" ;
 LT      :   "<" ;
 LE      :   "<=" ;
-TRUE	:  "true";
-FALSE   :  "false";
 
 // Math operators
 PLUS    :   '+' ;
