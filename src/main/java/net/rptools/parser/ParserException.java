@@ -41,7 +41,9 @@ public class ParserException extends Exception {
     macroStackTrace.add(name);
   }
 
-  /** @return an array representing the macro stack trace. */
+  /**
+   * @return an array representing the macro stack trace.
+   */
   public String[] getMacroStackTrace() {
     return macroStackTrace.toArray(new String[0]);
   }

@@ -1,7 +1,5 @@
 buildscript {
     dependencies {
-        classpath "com.diffplug.spotless:spotless-plugin-gradle:3.26.1"
-        classpath "org.ajoberstar.grgit:grgit-gradle:4.0.1"
         classpath 'antlr:antlr:2.7.7'
     }
 
@@ -12,30 +10,26 @@ buildscript {
 
 // Access Git info from build script
 plugins {
-    id "org.ajoberstar.grgit" version "4.0.1"
+    id "org.ajoberstar.grgit" version "5.2.1"
     id 'antlr'
+    id 'java-library'
+    id "com.diffplug.spotless" version "6.25.0"
+    id 'maven-publish'
 }
-
-
-apply plugin: 'java-library'
-apply plugin: 'com.diffplug.gradle.spotless'
-apply plugin: 'maven'
-
-
-project.sourceCompatibility = 10
-project.targetCompatibility = 10
-
 
 // In this section you declare where to find the dependencies of your project
 repositories {
     mavenCentral()
     mavenLocal()
-    maven { url = 'http://maptool.craigs-stuff.net/repo/' }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 
 dependencies {
-    implementation 'rhino:js:1.6R5'
     implementation 'antlr:antlr:2.7.7'
     testImplementation group: 'junit', name: 'junit', version: '4.11'
     antlr 'antlr:antlr:2.7.7'
@@ -91,26 +85,15 @@ spotless {
     }
 }
 
-configurations {
-    deployerJars
-}
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.github.RPTools'
+            artifactId = 'parser'
+            version = project.version
 
-install {
-    repositories.mavenInstaller {
-        pom.version = project.version
-        pom.artifactId = 'parser'
-        pom.groupId = 'net.rptools.parser'
-    }
-}
-
-
-uploadArchives {
-    repositories.mavenDeployer {
-        pom.version = project.version
-        pom.artifactId = 'parser'
-        pom.groupId = 'net.rptools.parser'
-        configuration = configurations.deployerJars
-        repository url: 'file://' + projectDir + '/../maven-repo'
+            from components.java
+        }
     }
 }
 
