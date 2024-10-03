@@ -104,6 +104,23 @@ public class DeterministicTreeParserTest {
     assertEquals(" ( + 1 10 )", dxp.getTree().toStringTree());
   }
 
+  @Test
+  public void testEvaluate_VariableResolutionString() throws ParserException {
+    Parser p = new Parser();
+    VariableResolver r = new MapVariableResolver();
+
+    r.setVariable("simpleString", "I am a string");
+
+    Expression xp = p.parseExpression("1+simpleString");
+    Expression dxp = xp.getDeterministicExpression(r);
+
+    assertNotSame(xp, dxp);
+
+    assertEquals(" ( + 1 simpleString )", xp.getTree().toStringTree());
+    // Note that "I am a string" is not quoted below. Bug?
+    assertEquals(" ( + 1 I am a string )", dxp.getTree().toStringTree());
+  }
+
   /**
    * Test function that declares itself non-deterministic for the purposes of comparing the result
    * of getting a deterministic expression from another expression.
