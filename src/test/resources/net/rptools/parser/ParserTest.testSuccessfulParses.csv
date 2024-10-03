@@ -89,6 +89,6 @@ Adjacent strings;"foo" "bar"; "foo"
 Multiline;`10 +
 17 +
 3`; ( + ( + 10 17 ) 3 )
-Unicode: multibyte BMP (U+2019);"pre ’ post"; "pre ? post"
-Unicode: SMP (U+1F512);"pre 🔒 post"; "pre ? post"
-Unicode: CJK (U+30013);"pre 𰀓 post"; "pre ? post"
+Unicode: multibyte BMP (U+2019);"pre ’ post"; "pre ’ post"
+Unicode: SMP (U+1F512);"pre 🔒 post"; "pre 🔒 post"
+Unicode: CJK (U+30013);"pre 𰀓 post"; "pre 𰀓 post"

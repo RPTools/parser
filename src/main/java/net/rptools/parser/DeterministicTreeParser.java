@@ -14,116 +14,81 @@
  */
 package net.rptools.parser;
 
-import static net.rptools.parser.ExpressionParserTokenTypes.ASSIGNEE;
-import static net.rptools.parser.ExpressionParserTokenTypes.FUNCTION;
-import static net.rptools.parser.ExpressionParserTokenTypes.HEXNUMBER;
-import static net.rptools.parser.ExpressionParserTokenTypes.NUMBER;
-import static net.rptools.parser.ExpressionParserTokenTypes.OPERATOR;
-import static net.rptools.parser.ExpressionParserTokenTypes.PROMPTVARIABLE;
-import static net.rptools.parser.ExpressionParserTokenTypes.STRING;
-import static net.rptools.parser.ExpressionParserTokenTypes.UNARY_OPERATOR;
-import static net.rptools.parser.ExpressionParserTokenTypes.VARIABLE;
-
-import antlr.collections.AST;
 import java.math.BigDecimal;
-import java.util.logging.Level;
+import java.util.ArrayList;
 import java.util.logging.Logger;
+import net.rptools.parser.ast.AST;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.Function;
 
 public class DeterministicTreeParser {
-  private static final Logger log = Logger.getLogger(EvaluationTreeParser.class.getName());
+  private static final Logger log = Logger.getLogger(DeterministicTreeParser.class.getName());
 
   private final Parser parser;
-  private final ExpressionParser xParser;
 
-  public DeterministicTreeParser(Parser parser, ExpressionParser xParser) {
+  public DeterministicTreeParser(Parser parser) {
     this.parser = parser;
-    this.xParser = xParser;
   }
 
   public AST evaluate(AST node, VariableResolver resolver) throws ParserException {
-    if (node == null) return null;
-
-    switch (node.getType()) {
-      case STRING:
-      case NUMBER:
-      case HEXNUMBER:
-      case ASSIGNEE:
-        node.setNextSibling(evaluate(node.getNextSibling(), resolver));
-        return node;
-      case VARIABLE:
-        {
-          String name = node.getText();
-          if (!resolver.containsVariable(name, VariableModifiers.None)) {
-            throw new EvaluationException(String.format("Undefined variable: %s", name));
-          }
-          Object value = resolver.getVariable(node.getText(), VariableModifiers.None);
-
-          if (log.isLoggable(Level.FINEST))
-            log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
-
-          AST newNode = createNode(value);
-          newNode.setNextSibling(evaluate(node.getNextSibling(), resolver));
-
-          return newNode;
+    return switch (node) {
+      case AST.Variable variable -> {
+        String name = variable.variable();
+        if (!resolver.containsVariable(name, VariableModifiers.None)) {
+          throw new EvaluationException(String.format("Undefined variable: %s", name));
         }
-      case PROMPTVARIABLE:
-        {
-          String name = node.getText();
-          if (!resolver.containsVariable(name, VariableModifiers.None)) {
-            throw new EvaluationException(String.format("Undefined variable: %s", name));
-          }
-          Object value = resolver.getVariable(node.getText(), VariableModifiers.None);
-
-          if (log.isLoggable(Level.FINEST))
-            log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
-
-          AST newNode = createNode(value);
-          newNode.setNextSibling(evaluate(node.getNextSibling(), resolver));
-
-          return newNode;
+        Object value = resolver.getVariable(name, VariableModifiers.None);
+        yield createNode(value);
+      }
+      case AST.PromptVariable promptVariable -> {
+        String name = promptVariable.variable();
+        if (!resolver.containsVariable(name, VariableModifiers.None)) {
+          throw new EvaluationException(String.format("Undefined variable: %s", name));
         }
-      case UNARY_OPERATOR:
-      case OPERATOR:
-      case FUNCTION:
-        {
-          String name = node.getText();
-          Function function = parser.getFunction(node.getText());
-          if (function == null) {
-            throw new EvaluationException(String.format("Undefined function: %s", name));
-          }
-
-          if (!function.isDeterministic()) {
-            Object value = parser.getEvaluationTreeParser().evaluate(node, resolver);
-
-            AST newNode = createNode(value);
-            newNode.setNextSibling(evaluate(node.getNextSibling(), resolver));
-
-            return newNode;
-          } else {
-            node.setFirstChild(evaluate(node.getFirstChild(), resolver));
-            node.setNextSibling(evaluate(node.getNextSibling(), resolver));
-            return node;
-          }
+        Object value = resolver.getVariable(name, VariableModifiers.None);
+        yield createNode(value);
+      }
+      case AST.NumberLiteral numberLiteral -> numberLiteral;
+      case AST.StringLiteral stringLiteral -> stringLiteral;
+      case AST.Unary unary ->
+          new AST.Unary(unary.text(), unary.operator(), evaluate(unary.operand(), resolver));
+      case AST.Binary binary ->
+          new AST.Binary(
+              binary.text(),
+              binary.operator(),
+              evaluate(binary.lhs(), resolver),
+              evaluate(binary.rhs(), resolver));
+      case AST.Assignment assignment ->
+          new AST.Assignment(
+              assignment.text(), assignment.lhs(), evaluate(assignment.rhs(), resolver));
+      case AST.FunctionCall functionCall -> {
+        String name = functionCall.function();
+        Function function = parser.getFunction(name);
+        if (function == null) {
+          throw new EvaluationException(String.format("Undefined function: %s", name));
         }
-      default:
-        throw new EvaluationException(
-            String.format("Unknown node type: name=%s, type=%d", node.getText(), node.getType()));
-    }
+
+        if (!function.isDeterministic()) {
+          Object value = parser.getEvaluationTreeParser().evaluate(functionCall, resolver);
+          yield createNode(value);
+        } else {
+          var parameters = new ArrayList<AST>();
+          for (var param : functionCall.parameters()) {
+            var result = evaluate(param, resolver);
+            parameters.add(result);
+          }
+          yield new AST.FunctionCall(functionCall.text(), functionCall.function(), parameters);
+        }
+      }
+    };
   }
 
   private AST createNode(Object value) {
-    AST newNode = xParser.getASTFactory().create();
-
-    if (value instanceof BigDecimal) {
-      newNode.setType(NUMBER);
-      newNode.setText(value.toString());
+    if (value instanceof BigDecimal bd) {
+      return new AST.NumberLiteral(bd.toPlainString(), bd);
     } else {
-      newNode.setType(STRING);
-      newNode.setText(value.toString());
+      var string = value.toString();
+      return new AST.StringLiteral(string, string);
     }
-
-    return newNode;
   }
 }

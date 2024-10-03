@@ -14,29 +14,13 @@
  */
 package net.rptools.parser;
 
-import static net.rptools.parser.ExpressionParserTokenTypes.ASSIGNEE;
-import static net.rptools.parser.ExpressionParserTokenTypes.FUNCTION;
-import static net.rptools.parser.ExpressionParserTokenTypes.HEXNUMBER;
-import static net.rptools.parser.ExpressionParserTokenTypes.NUMBER;
-import static net.rptools.parser.ExpressionParserTokenTypes.OPERATOR;
-import static net.rptools.parser.ExpressionParserTokenTypes.PROMPTVARIABLE;
-import static net.rptools.parser.ExpressionParserTokenTypes.STRING;
-import static net.rptools.parser.ExpressionParserTokenTypes.UNARY_OPERATOR;
-import static net.rptools.parser.ExpressionParserTokenTypes.VARIABLE;
-
-import antlr.collections.AST;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import net.rptools.parser.ast.AST;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.Function;
 
 public class EvaluationTreeParser {
-  private static final Logger log = Logger.getLogger(EvaluationTreeParser.class.getName());
-
   private final Parser parser;
 
   public EvaluationTreeParser(Parser parser) {
@@ -44,112 +28,73 @@ public class EvaluationTreeParser {
   }
 
   public Object evaluate(AST node, VariableResolver resolver) throws ParserException {
-    AST child;
-
-    switch (node.getType()) {
-      case ASSIGNEE:
-        {
-          String name = node.getText();
-          return name;
+    return switch (node) {
+      case AST.Variable variable -> {
+        String name = variable.variable();
+        if (!resolver.containsVariable(name, VariableModifiers.None)) {
+          throw new EvaluationException(String.format("Undefined variable: %s", name));
         }
-      case NUMBER:
-        {
-          BigDecimal d = new BigDecimal(node.getText());
-          if (log.isLoggable(Level.FINEST)) log.finest(String.format("NUMBER: value=%f\n", d));
-          return d;
+        yield resolver.getVariable(name, VariableModifiers.None);
+      }
+      case AST.PromptVariable promptVariable -> {
+        String name = promptVariable.variable();
+        if (!resolver.containsVariable(name, VariableModifiers.Prompt)) {
+          throw new EvaluationException(String.format("Undefined variable: %s", name));
         }
-      case HEXNUMBER:
-        {
-          String s = node.getText();
-          BigInteger i = new BigInteger(s.substring(2), 16);
-          if (log.isLoggable(Level.FINEST)) log.finest(String.format("HEXNUMBER: value=%f\n", i));
-          return new BigDecimal(i);
+        yield resolver.getVariable(promptVariable.variable(), VariableModifiers.Prompt);
+      }
+      case AST.NumberLiteral numberLiteral -> numberLiteral.value();
+      case AST.StringLiteral stringLiteral -> stringLiteral.value();
+      case AST.Unary unary -> {
+        var child = evaluate(unary.operand(), resolver);
+
+        var functionName = unary.operator().asText();
+        Function function = parser.getFunction(functionName);
+        if (function == null) {
+          throw new EvaluationException(
+              String.format("Undefined unary function: %s", functionName));
         }
-      case UNARY_OPERATOR:
-        {
-          String name = node.getText();
+        yield function.evaluate(parser, resolver, functionName, List.of(child));
+      }
+      case AST.Binary binary -> {
+        var lhs = evaluate(binary.lhs(), resolver);
+        var rhs = evaluate(binary.rhs(), resolver);
 
-          if (log.isLoggable(Level.FINEST))
-            log.finest(String.format("UNARY_FUNCTION: name=%s type=%d\n", name, node.getType()));
-
-          List<Object> params = new ArrayList<Object>();
-
-          child = node.getFirstChild();
-          if (child != null) {
-            params.add(evaluate(child, resolver));
-            while ((child = child.getNextSibling()) != null) {
-              params.add(evaluate(child, resolver));
-            }
-          }
-
-          Function function = parser.getFunction(node.getText());
-          if (function == null) {
-            throw new EvaluationException(String.format("Undefined unary function: %s", name));
-          }
-          return function.evaluate(parser, resolver, name, params);
+        var functionName = binary.operator().asText();
+        Function function = parser.getFunction(functionName);
+        if (function == null) {
+          throw new EvaluationException(
+              String.format("Undefined binary function: %s", functionName));
         }
-      case OPERATOR:
-      case FUNCTION:
-        {
-          String name = node.getText();
+        yield function.evaluate(parser, resolver, functionName, List.of(lhs, rhs));
+      }
+      case AST.Assignment assignment -> {
+        // Note: don't evaluate the left-hand side - we don't what to look up the variable!
+        var lhs = assignment.lhs().text();
+        var rhs = evaluate(assignment.rhs(), resolver);
 
-          if (log.isLoggable(Level.FINEST))
-            log.finest(String.format("FUNCTION: name=%s type=%d\n", name, node.getType()));
-
-          List<Object> params = new ArrayList<Object>();
-
-          child = node.getFirstChild();
-          if (child != null) {
-            params.add(evaluate(child, resolver));
-            while ((child = child.getNextSibling()) != null) {
-              params.add(evaluate(child, resolver));
-            }
-          }
-
-          Function function = parser.getFunction(name);
-          if (function == null) {
-            throw new EvaluationException(String.format("Undefined function: %s", name));
-          }
-          return function.evaluate(parser, resolver, name, params);
+        var functionName = "=";
+        Function function = parser.getFunction(functionName);
+        if (function == null) {
+          throw new EvaluationException(
+              String.format("Undefined binary function: %s", functionName));
         }
-      case VARIABLE:
-        {
-          String name = node.getText();
-          if (!resolver.containsVariable(name, VariableModifiers.None)) {
-            throw new EvaluationException(String.format("Undefined variable: %s", name));
-          }
-          Object value = resolver.getVariable(node.getText(), VariableModifiers.None);
-          if (log.isLoggable(Level.FINEST))
-            log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
-          return value;
-        }
-      case PROMPTVARIABLE:
-        {
-          String name = node.getText();
-          if (!resolver.containsVariable(name, VariableModifiers.Prompt)) {
-            throw new EvaluationException(String.format("Undefined variable: %s", name));
-          }
-          Object value = resolver.getVariable(node.getText(), VariableModifiers.Prompt);
-          if (log.isLoggable(Level.FINEST))
-            log.finest(String.format("VARIABLE: name=%s, value=%s\n", node.getText(), value));
-          return value;
-        }
-      case STRING:
-        {
-          String str = node.getText();
-          // Strip off the quotes from the string
-          if (str.length() >= 2) {
-            char first = str.charAt(0);
-            char last = str.charAt(str.length() - 1);
+        yield function.evaluate(parser, resolver, functionName, List.of(lhs, rhs));
+      }
+      case AST.FunctionCall functionCall -> {
+        String name = functionCall.function();
 
-            if (first == last && first == '\'' || first == '"')
-              str = str.substring(1, str.length() - 1);
-          }
-          return str;
+        var params = new ArrayList<>();
+        for (var child : functionCall.parameters()) {
+          params.add(evaluate(child, resolver));
         }
-      default:
-        throw new EvaluationException(
-            String.format("Unknown node type: name=%s, type=%d", node.getText(), node.getType()));
-    }
+
+        Function function = parser.getFunction(name);
+        if (function == null) {
+          throw new EvaluationException(String.format("Undefined function: %s", name));
+        }
+        yield function.evaluate(parser, resolver, name, params);
+      }
+    };
   }
 }
