@@ -14,43 +14,52 @@
  */
 package net.rptools.parser;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.*;
+
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
+import org.junit.jupiter.api.Test;
 
-public class InlineTreeFormatterTest extends TestCase {
+public class InlineTreeFormatterTest {
+  @Test
   public void testFormatSimple() throws ParserException, EvaluationException, ParameterException {
     compare("200*2", "200 * 2");
     compare("200*VAR+2", "200 * VAR + 2");
     compare("200*(2*4)*7", "200 * 2 * 4 * 7");
   }
 
+  @Test
   public void testFormatComplex() throws ParserException, EvaluationException, ParameterException {
     compare("200+2+2*2", "200 + 2 + 2 * 2");
     compare("200+(2+2)*2", "200 + (2 + 2) * 2");
   }
 
+  @Test
   public void testFormatFunction() throws ParserException, EvaluationException, ParameterException {
     compare("100*func(2)", "100 * func(2)");
     compare("100*func(2,(2+3)*7)", "100 * func(2, (2 + 3) * 7)");
     compare("100*func(2,(2+func2(3))*7)", "100 * func(2, (2 + func2(3)) * 7)");
   }
 
+  @Test
   public void testFormatOperatorAsFunction()
       throws ParserException, EvaluationException, ParameterException {
     compare("sum(200, 2)", "sum(200, 2)");
     compare("100 + 200 + multiply(7, 30)", "100 + 200 + multiply(7, 30)");
   }
 
+  @Test
   public void testFormatAssignment()
       throws ParserException, EvaluationException, ParameterException {
     compare("a=200+7", "a = (200 + 7)");
   }
 
+  @Test
   public void testFormatEval() throws ParserException, EvaluationException, ParameterException {
     compare("eval('2*2')", "eval('2*2')");
   }
 
+  @Test
   public void testLogicalOperators()
       throws ParserException, EvaluationException, ParameterException {
     /**
