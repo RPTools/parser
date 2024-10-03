@@ -85,6 +85,9 @@ public class InlineTreeFormatterTest {
     compare("true == (true && false) && false", "true == (true && false) && false");
     compare("true", "true");
     compare("false", "false");
+
+    compare("'false'", "'false'");
+    compare("\"false\"", "\"false\"");
   }
 
   private void compare(String expression, String expected)
