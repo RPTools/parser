@@ -14,15 +14,22 @@
  */
 package net.rptools.parser;
 
-import static net.rptools.parser.ExpressionParserTokenTypes.*;
-
-import antlr.collections.AST;
 import java.util.HashMap;
 import java.util.Map;
+import net.rptools.parser.ast.AssignmentNode;
+import net.rptools.parser.ast.BinaryNode;
+import net.rptools.parser.ast.ExpressionNode;
+import net.rptools.parser.ast.FunctionCallNode;
+import net.rptools.parser.ast.NumberNode;
+import net.rptools.parser.ast.PromptVariableNode;
+import net.rptools.parser.ast.StringNode;
+import net.rptools.parser.ast.UnaryNode;
+import net.rptools.parser.ast.VariableNode;
 
 public class InlineTreeFormatter {
 
-  private static Map<String, Integer> ORDER_OF_OPERATIONS = new HashMap<String, Integer>();
+  private static final Map<String, Integer> ORDER_OF_OPERATIONS = new HashMap<>();
+  private static final Integer STRONGEST_BINDING = Integer.MAX_VALUE;
 
   static {
     // P(1) E(2) MD(3) AS(4):
@@ -45,9 +52,9 @@ public class InlineTreeFormatter {
     ORDER_OF_OPERATIONS.put("||", 13);
   }
 
-  public String format(AST node) {
+  public String format(ExpressionNode node) {
     StringBuilder sb = new StringBuilder();
-    format(node, sb);
+    format(node, sb, STRONGEST_BINDING);
 
     return sb.toString();
   }
@@ -55,68 +62,55 @@ public class InlineTreeFormatter {
   private int getOrderOfOperator(String op) {
     Integer result = ORDER_OF_OPERATIONS.get(op);
     // revert to a default high order of for any not mapped operator
-    return result == null ? Integer.MAX_VALUE : result;
+    return result == null ? STRONGEST_BINDING : result;
   }
 
-  private void format(AST node, StringBuilder sb) {
+  private void format(ExpressionNode node, StringBuilder sb, int binding) {
     if (node == null) return;
 
-    switch (node.getType()) {
-      case ASSIGNEE:
-      case STRING:
-      case VARIABLE:
-      case NUMBER:
-      case HEXNUMBER:
-        {
-          sb.append(node.getText());
-          return;
-        }
-      case UNARY_OPERATOR:
-        {
-          if (!"+".equals(node.getText())) {
-            sb.append(node.getText());
+    switch (node) {
+      case FunctionCallNode functionCallNode -> {
+        sb.append(functionCallNode.function()).append("(");
+        boolean first = true;
+        for (var child : functionCallNode.parameters()) {
+          if (!first) {
+            sb.append(", ");
           }
-          format(node.getFirstChild(), sb);
-          return;
+          first = false;
+
+          format(child, sb, STRONGEST_BINDING);
         }
-      case OPERATOR:
-        {
-          int currentLevel = getOrderOfOperator(node.getText());
-
-          AST child = node.getFirstChild();
-          while (child != null) {
-            if (child.getType() == OPERATOR) {
-              int childLevel = getOrderOfOperator(child.getText());
-              if (currentLevel < childLevel) sb.append("(");
-              format(child, sb);
-              if (currentLevel < childLevel) sb.append(")");
-            } else {
-              format(child, sb);
-            }
-
-            child = child.getNextSibling();
-
-            if (child != null) sb.append(' ').append(node.getText()).append(' ');
-          }
-
-          return;
-        }
-      case FUNCTION:
-        {
-          sb.append(node.getText()).append("(");
-          AST child = node.getFirstChild();
-          while (child != null) {
-            format(child, sb);
-            child = child.getNextSibling();
-            if (child != null) sb.append(", ");
-          }
-
+        sb.append(")");
+      }
+      case PromptVariableNode promptVariableNode ->
+          sb.append("?").append(promptVariableNode.variable());
+      case VariableNode variableNode -> sb.append(variableNode.variable());
+      case NumberNode numberNode -> sb.append(numberNode.value().toPlainString());
+      case StringNode stringNode ->
+          sb.append(stringNode.quote()).append(stringNode.value()).append(stringNode.quote());
+      case UnaryNode unaryNode -> {
+        sb.append(unaryNode.operator().asText());
+        format(unaryNode.operand(), sb, binding);
+      }
+      case BinaryNode binaryNode -> {
+        var asText = binaryNode.operator().asText();
+        int precedence = getOrderOfOperator(asText);
+        if (precedence > binding) {
+          sb.append("(");
+          format(binaryNode.lhs(), sb, STRONGEST_BINDING);
+          sb.append(" ").append(asText).append(" ");
+          format(binaryNode.rhs(), sb, STRONGEST_BINDING);
           sb.append(")");
-          return;
+        } else {
+          format(binaryNode.lhs(), sb, precedence);
+          sb.append(" ").append(asText).append(" ");
+          format(binaryNode.rhs(), sb, precedence);
         }
-      default:
-        throw new IllegalArgumentException(
-            String.format("Unknown node type: name=%s, type=%d", node.getText(), node.getType()));
+      }
+      case AssignmentNode assignmentNode -> {
+        sb.append(assignmentNode.lhs()).append(" = ");
+        format(assignmentNode.rhs(), sb, ORDER_OF_OPERATIONS.get("="));
+      }
     }
   }
 }

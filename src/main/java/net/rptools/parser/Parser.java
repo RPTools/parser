@@ -14,11 +14,6 @@
  */
 package net.rptools.parser;
 
-import antlr.CommonAST;
-import antlr.RecognitionException;
-import antlr.TokenStreamException;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -61,6 +56,8 @@ import net.rptools.parser.function.impl.StrEquals;
 import net.rptools.parser.function.impl.StrNotEquals;
 import net.rptools.parser.function.impl.Subtraction;
 import net.rptools.parser.transform.Transformer;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 public class Parser {
   private final Map<String, Function> functions = new CaseInsensitiveHashMap<>();
@@ -201,18 +198,12 @@ public class Parser {
     try {
       String s = applyTransforms(expression);
 
-      ExpressionLexer lexer =
-          new ExpressionLexer(new ByteArrayInputStream(s.getBytes(StandardCharsets.ISO_8859_1)));
-      ExpressionParser parser = new ExpressionParser(lexer);
+      ExpressionLexer lexer = new ExpressionLexer(CharStreams.fromString(s));
+      ExpressionParser parser = new ExpressionParser(new CommonTokenStream(lexer));
+      var ast = new AstBuilderVisitor().visit(parser.expr());
 
-      parser.expression();
-      CommonAST t = (CommonAST) parser.getAST();
-
-      return new Expression(this, parser, t);
-
-    } catch (RecognitionException e) {
-      throw new ParserException(e);
-    } catch (TokenStreamException e) {
+      return new Expression(this, parser, ast);
+    } catch (Exception e) {
       throw new ParserException(e);
     }
   }

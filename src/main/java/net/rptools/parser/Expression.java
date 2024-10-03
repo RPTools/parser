@@ -14,16 +14,16 @@
  */
 package net.rptools.parser;
 
-import antlr.collections.AST;
+import net.rptools.parser.ast.ExpressionNode;
 
 public class Expression {
   private static final InlineTreeFormatter inlineFormatter = new InlineTreeFormatter();
 
   private final Parser parser;
   private final ExpressionParser expressionParser;
-  private final AST tree;
+  private final ExpressionNode tree;
 
-  Expression(Parser parser, ExpressionParser expressionParser, AST tree) {
+  Expression(Parser parser, ExpressionParser expressionParser, ExpressionNode tree) {
     this.parser = parser;
     this.expressionParser = expressionParser;
     this.tree = tree;
@@ -37,7 +37,7 @@ public class Expression {
     return expressionParser;
   }
 
-  public AST getTree() {
+  public ExpressionNode getTree() {
     return tree;
   }
 
@@ -50,10 +50,9 @@ public class Expression {
   }
 
   public Expression getDeterministicExpression(VariableResolver resolver) throws ParserException {
-    DeterministicTreeParser tp = new DeterministicTreeParser(parser, expressionParser);
+    DeterministicTreeParser tp = new DeterministicTreeParser(parser);
 
-    AST dupTree = expressionParser.getASTFactory().dupTree(tree);
-    AST newTree = tp.evaluate(dupTree, resolver);
+    var newTree = tp.evaluate(tree, resolver);
 
     if (tree.equalsTree(newTree)) {
       return this;

@@ -47,12 +47,12 @@ Standard function: band();band(1, 2); ( band 1 2 )
 Standard function: bor();bor(1, 2); ( bor 1 2 )
 Standard function: bnot();bnot(3); ( bnot 3 )
 Standard function: bxor();bxor(7, 2); ( bxor 7 2 )
-Standard function: bor() hex input;bor(0xFF00, 0x00FF); ( bor 0xFF00 0x00FF )
-Standard function: band() hex input;band(0xFFF0, 0x00FF); ( band 0xFFF0 0x00FF )
-Hex integer;0xFF; 0xFF
-Standard function: hex() single byte;hex(0xFF); ( hex 0xFF )
-Standard function: hex() single byte as two;hex(0x00FF); ( hex 0x00FF )
-Standard function: hex() two byte;hex(0xfac1); ( hex 0xfac1 )
+Standard function: bor() hex input;bor(0xFF00, 0x00FF); ( bor 65280 255 )
+Standard function: band() hex input;band(0xFFF0, 0x00FF); ( band 65520 255 )
+Hex integer;0xFF; 255
+Standard function: hex() single byte;hex(0xFF); ( hex 255 )
+Standard function: hex() single byte as two;hex(0x00FF); ( hex 255 )
+Standard function: hex() two byte;hex(0xfac1); ( hex 64193 )
 Boolean: true;true; true
 Boolean: false;false; false
 Not: non-zero;!10; ( ! 10 )
@@ -88,5 +88,5 @@ Standard function: eqs() same string;eqs('foo', 'foo'); ( eqs 'foo' 'foo' )
 Multiline;`10 +
 17 +
 3`; ( + ( + 10 17 ) 3 )
-Multibyte unicode;"D’ziriak"; "D?ziriak"
+Multibyte unicode;"D’ziriak"; "D’ziriak"
 Multiple adjacent strings;"foo" "bar"; "foo"

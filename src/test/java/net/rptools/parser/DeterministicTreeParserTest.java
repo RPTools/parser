@@ -16,9 +16,9 @@ package net.rptools.parser;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import antlr.collections.AST;
 import java.math.BigDecimal;
 import java.util.List;
+import net.rptools.parser.ast.ExpressionNode;
 import net.rptools.parser.function.AbstractNumberFunction;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
@@ -34,8 +34,8 @@ public class DeterministicTreeParserTest {
 
     assertSame(xp, dxp);
 
-    AST tree = xp.getTree();
-    AST deterministicTree = dxp.getTree();
+    ExpressionNode tree = xp.getTree();
+    ExpressionNode deterministicTree = dxp.getTree();
 
     assertTrue(deterministicTree.equalsTree(tree));
   }

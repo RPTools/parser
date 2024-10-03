@@ -83,5 +83,5 @@ Standard function: eqs() same string;eqs('foo', 'foo');1
 Multiline;`10 +
 17 +
 3`;30
-Multibyte unicode;"D’ziriak";D?ziriak
+Multibyte unicode;"D’ziriak";D’ziriak
 Multiple adjacent strings;"foo" "bar";foo
