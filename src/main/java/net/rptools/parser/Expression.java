@@ -14,7 +14,7 @@
  */
 package net.rptools.parser;
 
-import antlr.collections.AST;
+import net.rptools.parser.ast.AST;
 
 public class Expression {
   private static final InlineTreeFormatter inlineFormatter = new InlineTreeFormatter();
@@ -50,10 +50,9 @@ public class Expression {
   }
 
   public Expression getDeterministicExpression(VariableResolver resolver) throws ParserException {
-    DeterministicTreeParser tp = new DeterministicTreeParser(parser, expressionParser);
+    DeterministicTreeParser tp = new DeterministicTreeParser(parser);
 
-    AST dupTree = expressionParser.getASTFactory().dupTree(tree);
-    AST newTree = tp.evaluate(dupTree, resolver);
+    AST newTree = tp.evaluate(tree, resolver);
 
     if (tree.equalsTree(newTree)) {
       return this;

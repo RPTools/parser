@@ -14,15 +14,15 @@
  */
 package net.rptools.parser;
 
-import static net.rptools.parser.ExpressionParserTokenTypes.*;
-
-import antlr.collections.AST;
 import java.util.HashMap;
 import java.util.Map;
+import net.rptools.parser.ast.AST;
+import net.rptools.parser.ast.UnaryOperator;
 
 public class InlineTreeFormatter {
 
-  private static Map<String, Integer> ORDER_OF_OPERATIONS = new HashMap<String, Integer>();
+  private static final Map<String, Integer> ORDER_OF_OPERATIONS = new HashMap<>();
+  private static final Integer STRONGEST_BINDING = Integer.MAX_VALUE;
 
   static {
     // P(1) E(2) MD(3) AS(4):
@@ -47,7 +47,7 @@ public class InlineTreeFormatter {
 
   public String format(AST node) {
     StringBuilder sb = new StringBuilder();
-    format(node, sb);
+    format(node, sb, STRONGEST_BINDING);
 
     return sb.toString();
   }
@@ -55,68 +55,56 @@ public class InlineTreeFormatter {
   private int getOrderOfOperator(String op) {
     Integer result = ORDER_OF_OPERATIONS.get(op);
     // revert to a default high order of for any not mapped operator
-    return result == null ? Integer.MAX_VALUE : result;
+    return result == null ? STRONGEST_BINDING : result;
   }
 
-  private void format(AST node, StringBuilder sb) {
+  private void format(AST node, StringBuilder sb, int binding) {
     if (node == null) return;
 
-    switch (node.getType()) {
-      case ASSIGNEE:
-      case STRING:
-      case VARIABLE:
-      case NUMBER:
-      case HEXNUMBER:
-        {
-          sb.append(node.getText());
-          return;
+    switch (node) {
+      case AST.Variable variable -> sb.append(variable.variable());
+      case AST.PromptVariable promptVariable -> sb.append("?").append(promptVariable.variable());
+      case AST.NumberLiteral numberLiteral -> sb.append(numberLiteral.value().toPlainString());
+      case AST.StringLiteral stringLiteral -> sb.append(stringLiteral.text());
+      case AST.Unary unary -> {
+        if (unary.operator() != UnaryOperator.Plus) {
+          sb.append(unary.text());
         }
-      case UNARY_OPERATOR:
-        {
-          if (!"+".equals(node.getText())) {
-            sb.append(node.getText());
-          }
-          format(node.getFirstChild(), sb);
-          return;
-        }
-      case OPERATOR:
-        {
-          int currentLevel = getOrderOfOperator(node.getText());
-
-          AST child = node.getFirstChild();
-          while (child != null) {
-            if (child.getType() == OPERATOR) {
-              int childLevel = getOrderOfOperator(child.getText());
-              if (currentLevel < childLevel) sb.append("(");
-              format(child, sb);
-              if (currentLevel < childLevel) sb.append(")");
-            } else {
-              format(child, sb);
-            }
-
-            child = child.getNextSibling();
-
-            if (child != null) sb.append(' ').append(node.getText()).append(' ');
-          }
-
-          return;
-        }
-      case FUNCTION:
-        {
-          sb.append(node.getText()).append("(");
-          AST child = node.getFirstChild();
-          while (child != null) {
-            format(child, sb);
-            child = child.getNextSibling();
-            if (child != null) sb.append(", ");
-          }
-
+        format(unary.operand(), sb, binding);
+      }
+      case AST.Binary binary -> {
+        int precedence = getOrderOfOperator(binary.operator().asText());
+        if (precedence > binding) {
+          sb.append("(");
+          format(binary.lhs(), sb, STRONGEST_BINDING);
+          sb.append(" ").append(binary.text()).append(" ");
+          format(binary.rhs(), sb, STRONGEST_BINDING);
           sb.append(")");
-          return;
+        } else {
+          format(binary.lhs(), sb, precedence);
+          sb.append(" ").append(binary.text()).append(" ");
+          format(binary.rhs(), sb, precedence);
         }
-      default:
-        throw new IllegalArgumentException(
-            String.format("Unknown node type: name=%s, type=%d", node.getText(), node.getType()));
+      }
+      case AST.Assignment assignment -> {
+        var order = getOrderOfOperator("=");
+        format(assignment.lhs(), sb, order);
+        sb.append(" ").append(assignment.text()).append(" ");
+        format(assignment.rhs(), sb, order);
+      }
+      case AST.FunctionCall functionCall -> {
+        sb.append(functionCall.function()).append("(");
+        boolean first = true;
+        for (var child : functionCall.parameters()) {
+          if (!first) {
+            sb.append(", ");
+          }
+          first = false;
+
+          format(child, sb, STRONGEST_BINDING);
+        }
+        sb.append(")");
+      }
     }
   }
 }

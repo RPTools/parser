@@ -14,15 +14,18 @@
  */
 package net.rptools.parser.function.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import junit.framework.TestCase;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
+import org.junit.jupiter.api.Test;
 
-public class PowerTest extends TestCase {
+public class PowerTest {
 
+  @Test
   public void testEvaluate() throws EvaluationException, ParameterException {
     Power power = new Power();
 

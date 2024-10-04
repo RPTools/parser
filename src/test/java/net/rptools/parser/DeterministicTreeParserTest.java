@@ -14,15 +14,18 @@
  */
 package net.rptools.parser;
 
-import antlr.collections.AST;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.math.BigDecimal;
 import java.util.List;
-import junit.framework.TestCase;
+import net.rptools.parser.ast.AST;
 import net.rptools.parser.function.AbstractNumberFunction;
 import net.rptools.parser.function.EvaluationException;
 import net.rptools.parser.function.ParameterException;
+import org.junit.jupiter.api.Test;
 
-public class DeterministicTreeParserTest extends TestCase {
+public class DeterministicTreeParserTest {
+  @Test
   public void testEvaluateOnlyDeterministicFunctions()
       throws ParserException, EvaluationException, ParameterException {
     Parser p = new Parser();
@@ -37,6 +40,7 @@ public class DeterministicTreeParserTest extends TestCase {
     assertTrue(deterministicTree.equalsTree(tree));
   }
 
+  @Test
   public void testEvaluate() throws ParserException, EvaluationException, ParameterException {
     Parser p = new Parser();
     p.addFunction(new NonDeterministicFunction());
@@ -52,6 +56,7 @@ public class DeterministicTreeParserTest extends TestCase {
     assertEquals(" ( + ( + ( + 200 2 ) 1 ) ( sum ( + 1 2 ) 2 3 ) )", dxp.getTree().toStringTree());
   }
 
+  @Test
   public void testEvaluate_WithAssignment()
       throws ParserException, EvaluationException, ParameterException {
     Parser p = new Parser();
@@ -68,6 +73,7 @@ public class DeterministicTreeParserTest extends TestCase {
     assertEquals(" ( = a ( + ( + 200 2 ) 1 ) )", dxp.getTree().toStringTree());
   }
 
+  @Test
   public void testEvaluate2() throws ParserException {
     Parser p = new Parser();
     p.addFunction(new NonDeterministicFunction());
@@ -82,6 +88,7 @@ public class DeterministicTreeParserTest extends TestCase {
     assertEquals(" ( + 100 ( * 1 10 ) )", dxp.getTree().toStringTree());
   }
 
+  @Test
   public void testEvaluate_VariableResolution() throws ParserException {
     Parser p = new Parser();
     VariableResolver r = new MapVariableResolver();
@@ -95,6 +102,23 @@ public class DeterministicTreeParserTest extends TestCase {
 
     assertEquals(" ( + 1 simpleInt )", xp.getTree().toStringTree());
     assertEquals(" ( + 1 10 )", dxp.getTree().toStringTree());
+  }
+
+  @Test
+  public void testEvaluate_VariableResolutionString() throws ParserException {
+    Parser p = new Parser();
+    VariableResolver r = new MapVariableResolver();
+
+    r.setVariable("simpleString", "I am a string");
+
+    Expression xp = p.parseExpression("1+simpleString");
+    Expression dxp = xp.getDeterministicExpression(r);
+
+    assertNotSame(xp, dxp);
+
+    assertEquals(" ( + 1 simpleString )", xp.getTree().toStringTree());
+    // Note that "I am a string" is not quoted below. Bug?
+    assertEquals(" ( + 1 I am a string )", dxp.getTree().toStringTree());
   }
 
   /**

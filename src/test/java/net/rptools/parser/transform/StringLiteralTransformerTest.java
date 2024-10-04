@@ -14,9 +14,12 @@
  */
 package net.rptools.parser.transform;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class StringLiteralTransformerTest extends TestCase {
+import org.junit.jupiter.api.Test;
+
+public class StringLiteralTransformerTest {
+  @Test
   public void testRemove() {
     StringLiteralTransformer transformer = new StringLiteralTransformer();
 
@@ -25,6 +28,7 @@ public class StringLiteralTransformerTest extends TestCase {
         transformer.getRemoveTransformer().transform("This is a \"test\", dont you think?"));
   }
 
+  @Test
   public void testReplace() {
     StringLiteralTransformer transformer = new StringLiteralTransformer();
 

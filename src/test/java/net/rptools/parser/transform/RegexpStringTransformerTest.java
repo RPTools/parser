@@ -14,12 +14,15 @@
  */
 package net.rptools.parser.transform;
 
-import junit.framework.TestCase;
+import static org.junit.jupiter.api.Assertions.*;
+
 import net.rptools.parser.Parser;
 import net.rptools.parser.ParserException;
+import org.junit.jupiter.api.Test;
 
-public class RegexpStringTransformerTest extends TestCase {
+public class RegexpStringTransformerTest {
 
+  @Test
   public void testSimpleReplacement() throws ParserException {
     Parser p = new Parser();
 
@@ -29,6 +32,7 @@ public class RegexpStringTransformerTest extends TestCase {
     assertEquals("10 + bard + 17", p.parseExpression("10 + food + 17").format());
   }
 
+  @Test
   public void testReplacementWithSubstitutions() throws ParserException {
     Parser p = new Parser();
 
