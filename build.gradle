@@ -35,7 +35,7 @@ repositories {
 
 
 dependencies {
-    implementation 'rhino:js:1.6R5'
+    implementation 'rhino:js:1.7R2'
     implementation 'antlr:antlr:2.7.7'
     testImplementation group: 'junit', name: 'junit', version: '4.11'
     antlr 'antlr:antlr:2.7.7'
