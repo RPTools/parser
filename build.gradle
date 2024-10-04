@@ -1,7 +1,7 @@
 buildscript {
     dependencies {
         classpath "com.diffplug.spotless:spotless-plugin-gradle:3.26.1"
-        classpath "org.ajoberstar.grgit:grgit-gradle:4.0.1"
+        classpath "org.ajoberstar.grgit:grgit-gradle:5.2.2"
         classpath 'antlr:antlr:2.7.7'
     }
 
