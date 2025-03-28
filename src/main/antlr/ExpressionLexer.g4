@@ -37,6 +37,9 @@ IDENTIFIER           : LETTER (LETTER|DIGIT|'.'|'_')* ;
 SINGLE_QUOTED_STRING : '\'' ( ~'\'' )* '\'' ;
 DOUBLE_QUOTED_STRING : '"' ( ~'"' )* '"' ;
 
+// Force consumption of unknown tokens without discarding them.
+ErrChar : . ;
+
 fragment HEXDIGIT    : ('0'..'9'|'A'..'F'|'a'..'f') ;
 fragment INT         : ('0'..'9')+ ;
 fragment DIGIT       : '0'..'9' ;

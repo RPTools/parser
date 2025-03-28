@@ -22,6 +22,8 @@ options {
     tokenVocab=ExpressionLexer;
 }
 
+full: result=expr (expr)* EOF;
+
 expr:
       id=IDENTIFIER LPAREN (expr (COMMA expr)*)? RPAREN # function
     | QUESTION id=IDENTIFIER  # promptvariable
