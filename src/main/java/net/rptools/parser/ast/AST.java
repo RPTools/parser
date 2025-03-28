@@ -17,6 +17,7 @@ package net.rptools.parser.ast;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An immutable node in the AST.
@@ -53,14 +54,13 @@ public sealed interface AST {
 
   private static String toStringList(AST node) {
     var children = getChildren(node);
-    if (children.isEmpty()) {
+    if (!(node instanceof FunctionCall) && children.isEmpty()) {
       return node.text();
     }
 
     return "( "
-        + node.text()
-        + " "
-        + children.stream().map(AST::toStringList).collect(Collectors.joining(" "))
+        + Stream.concat(Stream.of(node.text()), children.stream().map(AST::toStringList))
+            .collect(Collectors.joining(" "))
         + " )";
   }
 

@@ -53,6 +53,7 @@ Hex integer;0xFF; 0xFF
 Standard function: hex() single byte;hex(0xFF); ( hex 0xFF )
 Standard function: hex() single byte as two;hex(0x00FF); ( hex 0x00FF )
 Standard function: hex() two byte;hex(0xfac1); ( hex 0xfac1 )
+No parameters function;test(); ( test )
 Boolean: true;true; true
 Boolean: false;false; false
 Not: non-zero;!10; ( ! 10 )

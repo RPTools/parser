@@ -23,7 +23,7 @@ options {
 }
 
 expr:
-      id=IDENTIFIER LPAREN expr (COMMA expr)* RPAREN # function
+      id=IDENTIFIER LPAREN (expr (COMMA expr)*)? RPAREN # function
     | QUESTION id=IDENTIFIER  # promptvariable
     | id=IDENTIFIER  # variable
     | number=NUMBER  # decimal
