@@ -57,6 +57,7 @@ import net.rptools.parser.function.impl.StrEquals;
 import net.rptools.parser.function.impl.StrNotEquals;
 import net.rptools.parser.function.impl.Subtraction;
 import net.rptools.parser.transform.Transformer;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -201,7 +202,8 @@ public class Parser {
 
       ExpressionLexer lexer = new ExpressionLexer(CharStreams.fromString(s));
       ExpressionParser parser = new ExpressionParser(new CommonTokenStream(lexer));
-      AST t = new AstBuilderVisitor().visit(parser.expr());
+      parser.setErrorHandler(new BailErrorStrategy());
+      AST t = new AstBuilderVisitor().visit(parser.full().result);
 
       return new Expression(this, parser, t);
     } catch (Exception e) {
