@@ -87,6 +87,9 @@ String equals mixed case: no;'Foo ' == ' fOo '; ( == 'Foo ' ' fOo ' )
 Standard function: eqs() mixed case strings;eqs('Foo ', ' fOo '); ( eqs 'Foo ' ' fOo ' )
 Standard function: eqs() same string;eqs('foo', 'foo'); ( eqs 'foo' 'foo' )
 Adjacent strings;"foo" "bar"; "foo"
+Adjacent strings (no whitespace);"foo""bar"; "foo"
+Adjacent strings (no whitespace, first is empty);"""bar"; ""
+Adjacent strings (no whitespace, second is empty);"foo"""; "foo"
 Multiline;`10 +
 17 +
 3`; ( + ( + 10 17 ) 3 )
