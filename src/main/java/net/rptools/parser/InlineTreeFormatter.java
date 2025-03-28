@@ -64,7 +64,7 @@ public class InlineTreeFormatter {
     switch (node) {
       case AST.Variable variable -> sb.append(variable.variable());
       case AST.PromptVariable promptVariable -> sb.append("?").append(promptVariable.variable());
-      case AST.NumberLiteral numberLiteral -> sb.append(numberLiteral.value().toPlainString());
+      case AST.NumberLiteral numberLiteral -> sb.append(numberLiteral.text());
       case AST.StringLiteral stringLiteral -> sb.append(stringLiteral.text());
       case AST.Unary unary -> {
         if (unary.operator() != UnaryOperator.Plus) {

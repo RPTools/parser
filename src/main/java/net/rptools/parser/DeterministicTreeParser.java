@@ -85,7 +85,7 @@ public class DeterministicTreeParser {
 
   private AST createNode(Object value) {
     if (value instanceof BigDecimal bd) {
-      return new AST.NumberLiteral(bd.toPlainString(), bd);
+      return new AST.NumberLiteral(bd.toString(), bd);
     } else {
       var string = value.toString();
       return new AST.StringLiteral(string, string);
